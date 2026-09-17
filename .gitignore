@@ -1,0 +1,6 @@
+app
+app.exe
+*.o
+.vscode/
+data/*.txt
+!data/sample_*.txt
