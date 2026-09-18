@@ -1,0 +1,6 @@
+Admin,A001,Okith Lunuwila,admin123
+Lecturer,L001,Dr. Nithika Dodangoda,lec123
+Lecturer,L002,Prof. Alan Turing,alan123
+Student,S001,Thishal Wickramathilake,stu123,CS100
+Student,S002,Kamal Perera,stu123,NONE
+Student,S003,Nimal Silva,stu123,CS101
