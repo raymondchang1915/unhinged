@@ -11,6 +11,9 @@
 #include "../include/Enrolment.h"
 #include "../include/Exceptions.h"
 #include "../include/UniversitySystem.h"
+#include "../include/AttendanceCapture.h"
+#include "../include/ConsoleCardReader.h"
+#include "../include/FileReplayCapture.h"
 
 using namespace std;
 
@@ -123,6 +126,38 @@ public:
                     if (!course) throw SystemException("Course '" + courseCode + "' not found.");
                     if (course->getSlots().empty()) throw SystemException("Course " + courseCode + " has no timetabled slot.");
                     lecturer->openSession(courseCode, course->getSlots()[0], 10);
+
+                    // the session is open, so now take the card taps for it
+                    string mode;
+                    cout<<"Capture taps now? (console / file / skip): ";
+                    if (!(cin >> mode)) return;
+
+                    // one base pointer, either reader behind it: the taps are read the
+                    // same way whether a person types them or a file replays them
+                    AttendanceCapture* reader = nullptr;
+                    if (mode == "console"){
+                        reader = new ConsoleCardReader();
+                    } else if (mode == "file"){
+                        reader = new FileReplayCapture("data/replay_taps.txt");
+                    }
+
+                    if (reader != nullptr){
+                        reader->beginSession();
+                        while (true){
+                            CaptureEvent tap = reader->captureNext();
+                            if (tap.getUid() == "EOF" || tap.getUid() == "STOP"){
+                                break;
+                            }
+                            try {
+                                sys.getAttendance().processEvent(tap);
+                            } catch (const SystemException& e){
+                                handleException(e);   // one bad tap must not end the session
+                            }
+                        }
+                        reader->endSession();
+                        delete reader;
+                        sys.saveAll();
+                    }
                 } else if (choice == 4){
                     if (!readWord("Enter session ID to close: ", sessionId)) return;
                     lecturer->closeSession(sessionId);

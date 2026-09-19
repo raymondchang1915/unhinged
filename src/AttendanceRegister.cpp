@@ -46,14 +46,6 @@ AttendanceSession* AttendanceRegister::findSessionById(string sessionId) {
     return nullptr;
 }
 
-vector<AttendanceSession>& AttendanceRegister::getAllSessions() {
-    return sessions;
-}
-
-const vector<AttendanceSession>& AttendanceRegister::getAllSessions() const {
-    return sessions;
-}
-
 // how a card tap is processed
 void AttendanceRegister::processEvent(CaptureEvent event) {
     AttendanceSession* session = getActiveSession();

@@ -10,22 +10,6 @@ TimeSlot::TimeSlot(int d, int start, int end, string loc)
     : day(d), startMin(start), endMin(end), location(loc) {
 }
 
-int TimeSlot::getDay() const {
-    return day;
-}
-
-int TimeSlot::getStartMin() const {
-    return startMin;
-}
-
-int TimeSlot::getEndMin() const {
-    return endMin;
-}
-
-string TimeSlot::getLocation() const {
-    return location;
-}
-
 // two slots clash only if they are on the same day and their times cross
 bool TimeSlot::overlaps(const TimeSlot& other) const {
     if (day != other.day) {

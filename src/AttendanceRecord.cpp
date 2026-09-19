@@ -16,14 +16,6 @@ string AttendanceRecord::getSessionId() const {
     return sessionId;
 }
 
-string AttendanceRecord::getTimestamp() const {
-    return timestamp;
-}
-
-string AttendanceRecord::getStatus() const {
-    return status;
-}
-
 string AttendanceRecord::getCapturedBy() const {
     return capturedBy;
 }

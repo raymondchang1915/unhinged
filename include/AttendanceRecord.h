@@ -21,8 +21,6 @@ public:
 
     string getStudentId() const;
     string getSessionId() const;
-    string getTimestamp() const;
-    string getStatus() const;
     string getCapturedBy() const;
 
     // virtual copy: a session can copy its records without knowing which kind each one is

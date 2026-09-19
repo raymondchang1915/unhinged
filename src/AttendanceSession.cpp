@@ -86,16 +86,8 @@ string AttendanceSession::getCourseId() const {
     return courseId;
 }
 
-TimeSlot AttendanceSession::getSlot() const {
-    return slot;
-}
-
 string AttendanceSession::getOpenedAt() const {
     return openedAt;
-}
-
-int AttendanceSession::getDurationMin() const {
-    return durationMin;
 }
 
 bool AttendanceSession::getIsOpen() const {

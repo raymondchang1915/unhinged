@@ -25,8 +25,6 @@ public:
     AttendanceSession* getActiveSession();
     AttendanceSession* findSessionById(string sessionId);
 
-    vector<AttendanceSession>& getAllSessions();
-    const vector<AttendanceSession>& getAllSessions() const;
 
     void processEvent(CaptureEvent event);   // one tap: resolve the UID, check, record
 

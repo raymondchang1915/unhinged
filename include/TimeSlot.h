@@ -17,10 +17,6 @@ public:
     TimeSlot();
     TimeSlot(int d, int start, int end, string loc);
 
-    int getDay() const;
-    int getStartMin() const;
-    int getEndMin() const;
-    string getLocation() const;
 
     bool overlaps(const TimeSlot& other) const;      // same day and the times cross
     bool operator&&(const TimeSlot& other) const;    // reads as "slotA && slotB"

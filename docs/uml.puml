@@ -1,4 +1,6 @@
-@startuml
+@startuml CRTAM_System
+' FINAL UML - matches the code as submitted.
+' Differences from the original design diagram are listed in docs/CHANGELOG.md.
 skinparam classAttributeIconSize 0
 hide empty members
 
@@ -24,9 +26,9 @@ class Student {
   + showDashboard() : void
   + enrol(courseId : string) : void
   + drop(courseId : string) : void
-  + getCard() : StudentCard& {query}
+  + getCard() : const StudentCard& {query}
   + getTimetable() : Timetable&
-  + getCompletedCourses() : vector<string>& {query}
+  + getCompletedCourses() : const vector<string>& {query}
   + addCompletedCourse(courseCode : string) : void
   + toLine() : string {query}
 }
@@ -55,6 +57,13 @@ Person <|-- Student
 Person <|-- Lecturer
 Person <|-- Administrator
 
+note bottom of Person
+  Student::enrol() and drop() do not hold the
+  rules themselves. They call UniversitySystem,
+  which is the only class that can see the users,
+  courses and enrolments at the same time.
+end note
+
 ' ================= COURSE =================
 abstract class Course {
   - code : string
@@ -72,12 +81,14 @@ abstract class Course {
   + getAssignedLectId() : string {query}
   + getPrerequisites() : vector<string> {query}
   + getEnrolledIds() : vector<string> {query}
-  + getSlots() : vector<TimeSlot>& {query}
+  + getSlots() : const vector<TimeSlot>& {query}
   + isFull() : bool {query}
   + addStudent(studentId : string) : void
   + removeStudent(studentId : string) : void
   + addPrereq(courseCode : string) : void
   + addSlot(slot : TimeSlot) : void
+  + prereqToLine() : string {query}
+  + slotsToLine() : string {query}
   + toLine() : string {query}
   + {static} fromLine(line : string) : Course*
   + {abstract} calculateCredits() : int {query}
@@ -87,14 +98,19 @@ abstract class Course {
 
 class LectureCourse {
   + calculateCredits() : int {query}
+  + toLine() : string {query}
 }
 class LabCourse {
   - labHours : int
+  + getLabHours() : int {query}
   + calculateCredits() : int {query}
+  + toLine() : string {query}
 }
 class ProjectCourse {
   - isPassFail : bool
+  + getIsPassFail() : bool {query}
   + calculateCredits() : int {query}
+  + toLine() : string {query}
 }
 
 Course <|-- LectureCourse
@@ -125,20 +141,20 @@ class TimeSlot {
 class Timetable {
   - slots : vector<TimeSlot>
   - slotCourses : vector<string>
+  + hasClash(newSlot : TimeSlot) : bool {query}
   + addSlot(slot : TimeSlot) : void
   + addSlot(slot : TimeSlot, courseId : string) : void
   + removeSlotsOf(courseId : string) : void
-  + hasClash(newSlot : TimeSlot) : bool {query}
   + clear() : void
-  + getSlots() : vector<TimeSlot>& {query}
+  + getSlots() : const vector<TimeSlot>& {query}
   + operator<<()
 }
 
 note right of Timetable
-  slotCourses runs parallel to slots:
-  it remembers which course each slot
-  came from, so removeSlotsOf() can
-  drop exactly that course's slots.
+  slotCourses runs parallel to slots and
+  remembers which course each slot came
+  from, so removeSlotsOf() can drop exactly
+  that course's slots when a student drops it.
 end note
 
 class Enrolment {
@@ -157,12 +173,11 @@ class Enrolment {
   + operator<<()
 }
 
-Course "1" *-- "1..*" TimeSlot
+Course "1" *-- "0..*" TimeSlot
 Student "1" *-- "1" Timetable
 Timetable "1" *-- "0..*" TimeSlot
 Enrolment "0..*" --> "1" Student
 Enrolment "0..*" --> "1" Course
-Course "0..*" --> "0..*" Student
 
 ' ================= ATTENDANCE CORE =================
 class AttendanceRegister {
@@ -179,6 +194,13 @@ class AttendanceRegister {
   + load(path : string) : void
 }
 
+note right of AttendanceRegister
+  processEvent() resolves the card UID to a
+  student ID, refuses a student who is not
+  enrolled, refuses a second tap in the same
+  session, then writes the record.
+end note
+
 class AttendanceSession {
   - {static} defaultDurationMin : int
   - id : string
@@ -188,22 +210,28 @@ class AttendanceSession {
   - durationMin : int
   - isOpen : bool
   - records : vector<AttendanceRecord*>
+  + AttendanceSession(other : AttendanceSession)
+  + operator=(other : AttendanceSession) : AttendanceSession&
+  + ~AttendanceSession()
+  + getId() : string {query}
+  + getCourseId() : string {query}
+  + getOpenedAt() : string {query}
+  + getIsOpen() : bool {query}
+  + getRecords() : const vector<AttendanceRecord*>& {query}
   + close() : void
   + isExpired() : bool {query}
   + markPresent(studentId : string, capturedBy : string, notify : bool) : void
   + appendCorrection(studentId : string, lecturerId : string, reason : string, notify : bool) : void
   + toLine() : string {query}
   + {static} fromLine(line : string) : AttendanceSession*
-  + AttendanceSession(other : AttendanceSession)
-  + operator=(other : AttendanceSession) : AttendanceSession&
-  + ~AttendanceSession()
 }
 
-note right of AttendanceSession
-  Rule of 5: records are owned raw
-  pointers, so the copy operations deep
-  copy them with clone() and the move
-  operations steal them instead.
+note bottom of AttendanceSession
+  Rule of 5: records are owned raw pointers,
+  so the copy operations deep copy them with
+  clone() and the move operations steal them.
+  Without all five, a copied session would
+  delete the same records twice.
 end note
 
 class AttendanceRecord {
@@ -212,15 +240,21 @@ class AttendanceRecord {
   # timestamp : string
   # status : string
   # capturedBy : string
+  + getStudentId() : string {query}
+  + getSessionId() : string {query}
+  + getCapturedBy() : string {query}
   + clone() : AttendanceRecord* {query}
   + toLine() : string {query}
   + {static} fromLine(line : string) : AttendanceRecord*
+  + {abstract} ~AttendanceRecord()
   + operator<<()
 }
 
 class CorrectionRecord {
   - actingLecturerId : string
   - reason : string
+  + getActingLecturerId() : string {query}
+  + getReason() : string {query}
   + clone() : AttendanceRecord* {query}
   + toLine() : string {query}
 }
@@ -260,11 +294,11 @@ class ConsoleCardReader {
 
 class StudentCard {
   - uid : char*
-  + getUid() : string {query}
-  + toLine() : string {query}
   + StudentCard(other : StudentCard)
   + operator=(other : StudentCard) : StudentCard&
   + ~StudentCard()
+  + getUid() : string {query}
+  + toLine() : string {query}
 }
 
 AttendanceCapture <|-- FileReplayCapture
@@ -275,8 +309,16 @@ AttendanceRegister ..> CaptureEvent
 FileReplayCapture ..> CaptureEvent
 ConsoleCardReader ..> CaptureEvent
 
+note bottom of AttendanceCapture
+  Menu holds one AttendanceCapture* and calls
+  captureNext() through it, so a typed UID and
+  a replayed file reach processEvent() by the
+  same path. StudentCard owns a char* and so
+  needs its own rule of 5.
+end note
+
 ' ================= EXCEPTIONS =================
-abstract class SystemException {
+class SystemException {
   - message : string
   + what() : const char* {query}
   + {abstract} ~SystemException()
@@ -288,23 +330,31 @@ class PersistenceException
 
 class UserNotFoundException {
   - userId : string
+  + getUserId() : string {query}
 }
 class InvalidCredentialsException
 
 class PrerequisiteNotMetException {
   - courseCode : string
   - missingPrereq : string
+  + getCourseCode() : string {query}
+  + getMissingPrereq() : string {query}
 }
 class CourseFullException {
   - courseCode : string
   - capacity : int
+  + getCourseCode() : string {query}
+  + getCapacity() : int {query}
 }
 class ClashException {
   - slotA : TimeSlot
   - slotB : TimeSlot
+  + getSlotA() : TimeSlot {query}
+  + getSlotB() : TimeSlot {query}
 }
 class AlreadyEnrolledException {
   - courseCode : string
+  + getCourseCode() : string {query}
 }
 class SessionClosedException
 class NotEnrolledException
@@ -312,9 +362,12 @@ class DuplicateAttendanceException
 class CorruptDataException {
   - filePath : string
   - lineNo : int
+  + getFilePath() : string {query}
+  + getLineNo() : int {query}
 }
 class FileNotFoundException {
   - filePath : string
+  + getFilePath() : string {query}
 }
 
 SystemException <|-- UserException
@@ -333,6 +386,16 @@ AttendanceException <|-- DuplicateAttendanceException
 PersistenceException <|-- CorruptDataException
 PersistenceException <|-- FileNotFoundException
 
+note right of SystemException
+  Concrete, not abstract: a few checks with no
+  specific type of their own throw it directly
+  (for example "course not found").
+  Menu catches SystemException& and so catches
+  every one of these with a single handler,
+  while initialize() catches only
+  FileNotFoundException to create starter files.
+end note
+
 ' ================= PERSISTENCE =================
 class "Repository<T>" as Repository {
   - items : map<string, T*>
@@ -341,25 +404,25 @@ class "Repository<T>" as Repository {
   + remove(id : string) : bool
   + findById(id : string) : T*
   + all() : vector<T*> {query}
-  + load(path : string, fromLineFactory : T* (*)(string)) : void
   + save(path : string) : void {query}
+  + load(path : string, fromLineFactory : T* (*)(string)) : void
   + clear() : void
   + ~Repository()
 }
 
 note right of Repository
-  Instantiated as:
-  Repository<Person>, Repository<Course>,
-  Repository<Enrolment>
+  Instantiated as Repository<Person>,
+  Repository<Course> and Repository<Enrolment>.
 
-  Stores T* and not T, because storing
-  objects by value would slice every
-  subclass down to its base.
+  Stores T* and not T: storing objects by value
+  would slice every subclass down to its base.
 
   load() takes a factory function pointer
   (Person::fromLine, Course::fromLine,
   Enrolment::fromLine) because the template
   cannot know how to parse a line itself.
+  save() calls toLine() on each item, which is
+  virtual, so every object writes its own format.
 end note
 
 ' ================= COORDINATOR =================
@@ -388,18 +451,19 @@ class UniversitySystem <<singleton>> {
 }
 
 note bottom of UniversitySystem
-  The constructor is private and the single
-  instance is reached through getInstance(),
-  so the whole program shares one system.
+  The constructor is private and the one instance
+  is reached through getInstance(), so the whole
+  program shares a single system.
 
   enrolStudent() runs the rules in order:
   already enrolled -> capacity -> prerequisites
   -> timetable clash, throwing the matching
   exception before anything is written.
 
-  Timetables are never saved. They are rebuilt
-  from the enrolments by rebuildStudentTimetables()
-  every time the program starts.
+  Timetables and course rolls are never saved.
+  rebuildStudentTimetables() derives them from
+  the enrolments every time the program starts,
+  so the two can never drift apart.
 end note
 
 UniversitySystem *-- Repository
@@ -417,6 +481,15 @@ class Menu {
   + adminMenu(admin : Administrator*) : void
 }
 
+note bottom of Menu
+  After login, run() calls showDashboard() on a
+  Person* and the right role's version runs, with
+  no if/else on a role string (FR1.3).
+  readChoice() and readWord() return false when
+  input ends, so closed input exits cleanly.
+end note
+
 Menu ..> UniversitySystem
 Menu ..> Person
+Menu ..> AttendanceCapture
 @enduml

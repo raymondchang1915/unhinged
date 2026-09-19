@@ -36,9 +36,7 @@ public:
 
     string getId() const;
     string getCourseId() const;
-    TimeSlot getSlot() const;
     string getOpenedAt() const;
-    int getDurationMin() const;
     bool getIsOpen() const;
     const vector<AttendanceRecord*>& getRecords() const;
 
