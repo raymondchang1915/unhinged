@@ -1,12 +1,10 @@
 #include "Enrolment.h"
 
-// static members must be defined once, outside the class
 int Enrolment::nextId = 1;
 
 // new enrolment: the ID is generated
-Enrolment::Enrolment(string sid, string cid, string date)
-    : studentId(sid), courseId(cid), enrolmentDate(date) {
-    id = "E" + to_string(nextId);
+Enrolment::Enrolment(string sid, string cid, string date): studentId(sid), courseId(cid), enrolmentDate(date) 
+{ id = "E" + to_string(nextId); 
     nextId++;
 }
 

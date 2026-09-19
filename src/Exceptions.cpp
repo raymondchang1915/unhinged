@@ -5,7 +5,7 @@
 
 SystemException::SystemException(string msg) : message(msg) {}
 
-const char* SystemException::what() const noexcept
+const char* SystemException::what() const noexcept//extract the error messege
 {
     return message.c_str();
 }
@@ -18,8 +18,7 @@ SystemException::~SystemException() {}
 UserException::UserException(string msg) : SystemException(msg) {}
 
 
-UserNotFoundException::UserNotFoundException(string userId)
-    : UserException("Error: User with ID " + userId + " was not found."), userId(userId) {}
+UserNotFoundException::UserNotFoundException(string userId): UserException("Error: User with ID " + userId + " was not found."), userId(userId) {}
 
 string UserNotFoundException::getUserId() const
 {
@@ -27,8 +26,7 @@ string UserNotFoundException::getUserId() const
 }
 
 
-InvalidCredentialsException::InvalidCredentialsException()
-    : UserException("Error: Invalid credentials. Incorrect password.") {}
+InvalidCredentialsException::InvalidCredentialsException(): UserException("Error: Invalid credentials. Incorrect password.") {}
 
 
 // enrolment exceptions
@@ -36,61 +34,32 @@ InvalidCredentialsException::InvalidCredentialsException()
 EnrolmentException::EnrolmentException(string msg) : SystemException(msg) {}
 
 
-PrerequisiteNotMetException::PrerequisiteNotMetException(string courseCode, string missingPrereq)
-    : EnrolmentException("Error: Cannot enrol in " + courseCode +
-                         ". Missing prerequisite: " + missingPrereq + "."),
-      courseCode(courseCode), missingPrereq(missingPrereq) {}
+PrerequisiteNotMetException::PrerequisiteNotMetException(string courseCode, string missingPrereq) : EnrolmentException("Error: Cannot enrol in " + courseCode + ". Missing prerequisite: " + missingPrereq + "."),courseCode(courseCode), missingPrereq(missingPrereq) {}
 
-string PrerequisiteNotMetException::getCourseCode() const
-{
-    return courseCode;
-}
+string PrerequisiteNotMetException::getCourseCode() const { return courseCode; }
 
-string PrerequisiteNotMetException::getMissingPrereq() const
-{
-    return missingPrereq;
-}
+string PrerequisiteNotMetException::getMissingPrereq() const { return missingPrereq; }
 
 
-CourseFullException::CourseFullException(string courseCode, int capacity)
-    : EnrolmentException("Error: Course " + courseCode +
-                         " is full. Maximum capacity is " + to_string(capacity) + "."),
-      courseCode(courseCode), capacity(capacity) {}
+CourseFullException::CourseFullException(string courseCode, int capacity): EnrolmentException("Error: Course " + courseCode + " is full. Maximum capacity is " + to_string(capacity) + "."), courseCode(courseCode), capacity(capacity) {}
 
-string CourseFullException::getCourseCode() const
-{
-    return courseCode;
-}
+string CourseFullException::getCourseCode() const { return courseCode; }
 
-int CourseFullException::getCapacity() const
-{
-    return capacity;
-}
+int CourseFullException::getCapacity() const { return capacity; }
 
 
-ClashException::ClashException(string slotA, string slotB)
-    : EnrolmentException("Error: Timetable clash between " + slotA + " and " + slotB + "."),
-      slotA(slotA), slotB(slotB) {}
+ClashException::ClashException(string slotA, string slotB) : EnrolmentException("Error: Timetable clash between " + slotA + " and " + slotB + "."), slotA(slotA), slotB(slotB) {}
 
-string ClashException::getSlotA() const
-{
-    return slotA;
-}
+string ClashException::getSlotA() const { return slotA; }
 
-string ClashException::getSlotB() const
-{
-    return slotB;
-}
+string ClashException::getSlotB() const { return slotB; }
 
 
-AlreadyEnrolledException::AlreadyEnrolledException(string courseCode)
-    : EnrolmentException("Error: Student is already enrolled in " + courseCode + "."),
-      courseCode(courseCode) {}
 
-string AlreadyEnrolledException::getCourseCode() const
-{
-    return courseCode;
-}
+AlreadyEnrolledException::AlreadyEnrolledException(string courseCode) : EnrolmentException("Error: Student is already enrolled in " + courseCode + "."), courseCode(courseCode) {}
+
+string AlreadyEnrolledException::getCourseCode() const { return courseCode; }
+
 
 
 // attendance exceptions
@@ -98,16 +67,13 @@ string AlreadyEnrolledException::getCourseCode() const
 AttendanceException::AttendanceException(string msg) : SystemException(msg) {}
 
 
-SessionClosedException::SessionClosedException()
-    : AttendanceException("Error: Attendance session has already been closed or expired.") {}
+SessionClosedException::SessionClosedException() : AttendanceException("Error: Attendance session has already been closed or expired.") {}
 
 
-NotEnrolledException::NotEnrolledException()
-    : AttendanceException("Error: Cannot mark attendance because student is not enrolled in this course.") {}
+NotEnrolledException::NotEnrolledException() : AttendanceException("Error: Cannot mark attendance because student is not enrolled in this course.") {}
 
 
-DuplicateAttendanceException::DuplicateAttendanceException()
-    : AttendanceException("Error: Student has already marked attendance for this session.") {}
+DuplicateAttendanceException::DuplicateAttendanceException() : AttendanceException("Error: Student has already marked attendance for this session.") {}
 
 
 // persistence exceptions
@@ -115,27 +81,14 @@ DuplicateAttendanceException::DuplicateAttendanceException()
 PersistenceException::PersistenceException(string msg) : SystemException(msg) {}
 
 
-CorruptDataException::CorruptDataException(string filePath, int lineNo)
-    : PersistenceException("Error: Corrupt data found in file " + filePath +
-                           " at line " + to_string(lineNo) + "."),
-      filePath(filePath), lineNo(lineNo) {}
+CorruptDataException::CorruptDataException(string filePath, int lineNo) : PersistenceException("Error: Corrupt data found in file " + filePath + " at line " + to_string(lineNo) + "."), filePath(filePath), lineNo(lineNo) {}
 
-string CorruptDataException::getFilePath() const
-{
-    return filePath;
-}
+string CorruptDataException::getFilePath() const { return filePath; }
 
-int CorruptDataException::getLineNo() const
-{
-    return lineNo;
-}
+int CorruptDataException::getLineNo() const { return lineNo; }
 
 
-FileNotFoundException::FileNotFoundException(string filePath)
-    : PersistenceException("Error: Could not locate or open file: " + filePath + "."),
-      filePath(filePath) {}
+FileNotFoundException::FileNotFoundException(string filePath) : PersistenceException("Error: Could not locate or open file: " + filePath + "."), filePath(filePath) {}
 
-string FileNotFoundException::getFilePath() const
-{
-    return filePath;
-}
+string FileNotFoundException::getFilePath() const { return filePath; }
+
