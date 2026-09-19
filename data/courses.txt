@@ -1,0 +1,5 @@
+LEC,CS101,Intro to Programming,3,30,L001,0,NONE,1;540;660;Hall 1
+LAB,CS102,Data Structures Lab,2,25,L001,4,CS101,3;780;960;Lab B
+PROJ,CS103,Software Capstone,4,20,L002,0,CS102,5;540;720;Room 3
+LEC,CS104,Computer Architecture,3,2,L002,0,NONE,1;600;720;Hall 2
+LEC,L432,OOP,3,40,L001,0,NONE,2;600;720;Townhall
