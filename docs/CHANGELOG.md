@@ -16,3 +16,9 @@
 | 2026-09-19 | ClashException now holds two TimeSlot objects instead of two strings | Matches the UML, and the message is built with TimeSlot's operator<< so clashes print as readable times | M1 |
 | 2026-09-19 | Enrolment IDs generated as ENR<n>, counter advances past IDs already on disk | enrolments.txt already used ENR1/ENR2; without the bump a new enrolment would reuse an existing ID | M1 |
 | 2026-09-19 | Timetable::addSlot(slot, courseId) and removeSlotsOf(courseId) added, with a parallel courseId vector | Both are on the UML and UniversitySystem calls them; dropping a course needs to know which slots came from it | M1 (M2 file - flagged to M2) |
+| 2026-09-19 | src/AttendanceRecord.cpp written (constructor, getters, clone, toLine, fromLine, operator<<) | The header had no implementation file, so the project compiled but could not link | M1 |
+| 2026-09-19 | AttendanceSession move constructor added | Declared in the header but never defined; vector<AttendanceSession> needs it when it reallocates | M1 |
+| 2026-09-19 | Student/Lecturer/Administrator role methods now call UniversitySystem instead of printing 'not implemented' | The rules already existed in UniversitySystem; the role classes just had to delegate | M1 |
+| 2026-09-19 | Menu extended with per-role submenus after login | Enrol, drop, timetable, attendance, sessions and reports were unreachable from main | M1 |
+| 2026-09-19 | Menu input reads go through readChoice/readWord which stop on EOF | Closed or piped input made the old menu loop forever printing 'Invalid input' | M1 |
+| 2026-09-19 | AttendanceRegister: shared recordTap() and countSessionsFor() helpers; AttendanceSession reformatted | Both processEvent overloads and three report functions repeated the same loops | M1 (M2 files) |

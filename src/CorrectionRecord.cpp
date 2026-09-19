@@ -2,11 +2,9 @@
 #include <string>
 
 //constructor
-CorrectionRecord::CorrectionRecord(std::string stuId,std::string sessId,std::string ts,std::string stat,std::string capBy,std::string lecturerId,std::string rsn)
-    :AttendanceRecord(stuId, sessId, ts, stat, capBy) {
-
-    this->actingLecturerId = lecturerId;
-    this->reason = rsn;
+CorrectionRecord::CorrectionRecord(std::string stuId, std::string sessId, std::string ts, std::string stat,
+                                   std::string capBy, std::string lecturerId, std::string rsn)
+    : AttendanceRecord(stuId, sessId, ts, stat, capBy), actingLecturerId(lecturerId), reason(rsn) {
 }
 
 std::string CorrectionRecord::getActingLecturerId() const {

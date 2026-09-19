@@ -1,4 +1,9 @@
 #include "Administrator.h"
+#include "UniversitySystem.h"
+#include "Course.h"
+#include "Enrolment.h"
+#include "Exceptions.h"
+
 #include <iostream>
 
 Administrator::Administrator(string i, string h, string p) : Person(i, h, p) {
@@ -26,7 +31,13 @@ void Administrator::updateUser(string userId) {
 }
 
 void Administrator::removeUser(string userId) {
-    cout << "removeUser not implemented yet: " << userId << "\n";
+    UniversitySystem& sys = UniversitySystem::getInstance();
+    if (!sys.getUsers().findById(userId)) {
+        throw UserNotFoundException(userId);
+    }
+    sys.getUsers().remove(userId);
+    sys.saveAll();
+    cout << "[Success] Removed user " << userId << "\n";
 }
 
 void Administrator::createCourse() {
@@ -39,12 +50,39 @@ void Administrator::editCourse(string courseCode) {
 }
 
 void Administrator::removeCourse(string courseCode) {
-    cout << "removeCourse not implemented yet: " << courseCode << "\n";
+    UniversitySystem& sys = UniversitySystem::getInstance();
+    if (!sys.findCourse(courseCode)) {
+        throw SystemException("Course '" + courseCode + "' not found.");
+    }
+    sys.getCourses().remove(courseCode);
+    sys.saveAll();
+    cout << "[Success] Removed course " << courseCode << "\n";
 }
 
+// FR6.1: every course with its roll, using Course's operator<<
 void Administrator::generateEnrolmentReport() {
-    // FR6.1 - needs Course + Enrolment
-    cout << "generateEnrolmentReport not implemented yet\n";
+    UniversitySystem& sys = UniversitySystem::getInstance();
+
+    cout << "\n========================================================\n";
+    cout << "                  ENROLMENT REPORT\n";
+    cout << "========================================================\n";
+
+    for (Course* c : sys.getCourses().all()) {
+        vector<string> enrolled = c->getEnrolledIds();
+        cout << "\n" << *c << "\n";
+        cout << "  Lecturer: " << c->getAssignedLectId()
+             << " | Seats: " << enrolled.size() << "/" << c->getCapacity() << "\n";
+
+        if (enrolled.empty()) {
+            cout << "  (nobody enrolled)\n";
+            continue;
+        }
+        for (const string& id : enrolled) {
+            Person* p = sys.getUsers().findById(id);
+            cout << "  - " << id << (p ? " (" + p->getName() + ")" : "") << "\n";
+        }
+    }
+    cout << "========================================================\n\n";
 }
 
 string Administrator::toLine() const {

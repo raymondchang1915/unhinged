@@ -1,4 +1,6 @@
 #include "Student.h"
+#include "UniversitySystem.h"
+
 #include <iostream>
 
 Student::Student(string i, string h, string p, string u)
@@ -18,14 +20,13 @@ void Student::showDashboard() {
     cout << "5. Logout\n";
 }
 
+// the checks live in UniversitySystem because they need every repository at once
 void Student::enrol(string courseId) {
-    // the real work lives in UniversitySystem::enrolStudent, which owns the repositories
-    cout << "enrol not implemented yet: " << courseId << "\n";
+    UniversitySystem::getInstance().enrolStudent(getId(), courseId);
 }
 
 void Student::drop(string courseId) {
-    // the real work lives in UniversitySystem::dropStudent
-    cout << "drop not implemented yet: " << courseId << "\n";
+    UniversitySystem::getInstance().dropStudent(getId(), courseId);
 }
 
 const StudentCard& Student::getCard() const {
