@@ -1,0 +1,55 @@
+#ifndef UNIVERSITYSYSTEM_H
+#define UNIVERSITYSYSTEM_H
+
+#include <string>
+#include <vector>
+#include "Repository.h"
+#include "Person.h"
+#include "Course.h"
+#include "Enrolment.h"
+#include "AttendanceRegister.h"
+
+//Forward declarations
+class Student;
+class Lecturer;
+class Administrator;
+
+class UniversitySystem {
+private:
+    std::string dataDir;//holds the folder name of data 
+    Repository<Person> users;
+    Repository<Course> courses;
+    Repository<Enrolment> enrolments;
+    AttendanceRegister attendance;
+
+    static UniversitySystem* instance; //pointer shared by whole system
+    UniversitySystem();//no outside can create another new university system
+
+public:
+    static UniversitySystem& getInstance();//how outside get access to the system
+
+    Repository<Person>& getUsers() { return users; }
+    Repository<Course>& getCourses() { return courses; }//functions to let other see the repos
+    Repository<Enrolment>& getEnrolments() { return enrolments; }
+    AttendanceRegister& getAttendance() { return attendance; }
+    const std::string& getDataDir() const { return dataDir; }
+
+    void initialize(const std::string& dir = "data");//default folder data
+    void loadAll();//functions to load save and start the system
+    void saveAll();
+    //pass by reference '&' so that the string is given to functions without making a copy
+    //const used so no change can occur
+    Student* findStudent(const std::string& id);//pointer return used so that its fast and modifies the real object and not found can happen
+    Lecturer* findLecturer(const std::string& id);//functions to find ppl using the Ids
+    Course* findCourse(const std::string& code);
+
+    std::vector<Enrolment*> getEnrolmentsForStudent(const std::string& studentId);
+    std::vector<Enrolment*> getEnrolmentsForCourse(const std::string& courseCode);//functions for enrollments with relavant data
+    std::string resolveUidToStudentId(const std::string& uid);
+
+    void enrolStudent(const std::string& studentId, const std::string& courseCode);//functions to enrol or drop
+    void dropStudent(const std::string& studentId, const std::string& courseCode);
+    void rebuildStudentTimetables();
+};
+
+#endif

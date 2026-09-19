@@ -4,3 +4,4 @@ app.exe
 .vscode/
 data/*.txt
 !data/sample_*.txt
+!data/*.txt
