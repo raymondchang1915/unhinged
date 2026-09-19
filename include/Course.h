@@ -45,4 +45,3 @@ public:
 ostream& operator<<(ostream& os, const Course& c);
 
 #endif
--
