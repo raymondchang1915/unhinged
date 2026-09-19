@@ -14,6 +14,10 @@ class AttendanceRegister {
     private:
     std::vector<AttendanceSession> sessions;
 
+    // shared by both processEvent overloads and both report overloads
+    void recordTap(const std::string& studentId, const std::string& capturedBy);
+    int countSessionsFor(const std::string& courseId) const;
+
     public:
     AttendanceRegister() {}
     AttendanceSession& openSession(std::string courseId,TimeSlot slot,int durationMin = 10);
