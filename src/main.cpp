@@ -188,13 +188,35 @@ public:
             if (choice == 4) return;
 
             try {
-                string id;
+                string id, action;
                 if (choice == 1){
-                    if (!readWord("Enter user ID to remove: ", id)) return;
-                    admin->removeUser(id);
+                    cout<<"  a. Add a user\n  b. Edit a user\n  c. Remove a user\n";
+                    if (!readWord("Choose (a/b/c): ", action)) return;
+                    if (action == "a"){
+                        admin->createUser();
+                    } else if (action == "b"){
+                        if (!readWord("Enter user ID to edit: ", id)) return;
+                        admin->updateUser(id);
+                    } else if (action == "c"){
+                        if (!readWord("Enter user ID to remove: ", id)) return;
+                        admin->removeUser(id);
+                    } else {
+                        cout<<"Invalid choice. Please enter a, b or c.\n";
+                    }
                 } else if (choice == 2){
-                    if (!readWord("Enter course code to remove: ", id)) return;
-                    admin->removeCourse(id);
+                    cout<<"  a. Add a course\n  b. Edit a course\n  c. Remove a course\n";
+                    if (!readWord("Choose (a/b/c): ", action)) return;
+                    if (action == "a"){
+                        admin->createCourse();
+                    } else if (action == "b"){
+                        if (!readWord("Enter course code to edit: ", id)) return;
+                        admin->editCourse(id);
+                    } else if (action == "c"){
+                        if (!readWord("Enter course code to remove: ", id)) return;
+                        admin->removeCourse(id);
+                    } else {
+                        cout<<"Invalid choice. Please enter a, b or c.\n";
+                    }
                 } else if (choice == 3){
                     admin->generateEnrolmentReport();
                 } else if (choice != -1){
