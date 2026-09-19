@@ -20,5 +20,5 @@ int ProjectCourse::calculateCredits() const {
 }
 
 string ProjectCourse::toLine() const {
-    return "PROJ|" + Course::toLine() + "|" + (isPassFail ? "1" : "0");
+    return "PROJ," + Course::toLine() + "," + (isPassFail ? "1" : "0") + "," + prereqToLine() + "," + slotsToLine();
 }

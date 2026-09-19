@@ -11,11 +11,27 @@ bool Timetable::hasClash(const TimeSlot& newSlot) const {
 }
 
 void Timetable::addSlot(const TimeSlot& slot) {
+    addSlot(slot, "");
+}
+
+void Timetable::addSlot(const TimeSlot& slot, const std::string& courseId) {
     slots.push_back(slot);
+    slotCourses.push_back(courseId);
+}
+
+// drops every slot that came from one course, used when a student drops it
+void Timetable::removeSlotsOf(const std::string& courseId) {
+    for (int i = (int)slots.size() - 1; i >= 0; i--) {
+        if (slotCourses[i] == courseId) {
+            slots.erase(slots.begin() + i);
+            slotCourses.erase(slotCourses.begin() + i);
+        }
+    }
 }
 
 void Timetable::clear() {
     slots.clear();
+    slotCourses.clear();
 }
 
 const std::vector<TimeSlot>& Timetable::getSlots() const {

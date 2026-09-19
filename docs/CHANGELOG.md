@@ -7,3 +7,12 @@
 | 2026-09-19 | Course keeps getTitle/getCapacity/getAssignedLectId/getPrereq/getEnrolledIds/getCreditVal/addPrereq, which the UML does not show | UML omits trivial accessors; keeping fields private with public getters is simpler than friend functions or protected fields, and Lecturer::viewEnrolmentList and Administrator::generateEnrolmentReport need the enrolment list | M1 |
 | 2026-09-19 | Course::slots (vector<TimeSlot>) declared but commented out | TimeSlot is M2's class; the vector needs the complete type before Course can be constructed. Uncomment when M2 pushes TimeSlot.h | M1 |
 | 2026-09-19 | Student's 4th constructor parameter accepted but unused | StudentCard is M2's class; the parameter stays in the signature so no call site changes when M2 lands | M1 |
+| 2026-09-19 | Student now owns StudentCard and Timetable; added getCard, getTimetable, getCompletedCourses, addCompletedCourse | Required by UniversitySystem for UID lookup, clash checking and prerequisite checks | M1 |
+| 2026-09-19 | Course now owns vector<TimeSlot> slots; added getSlots, addSlot; getPrereq renamed getPrerequisites | Matches the UML and the name UniversitySystem already calls | M1 |
+| 2026-09-19 | All toLine() output changed from pipe to comma separators, and now includes every field | Pipe format could not be read back by the data files M3 wrote; save/load now round-trips byte for byte | M1 |
+| 2026-09-19 | Person::fromLine, Course::fromLine and Enrolment::fromLine implemented | Repository<T>::load needs a T* factory per type; these decode the role/type tag and build the right subclass | M1 |
+| 2026-09-19 | Person::getPassword() added (not on the UML) | toLine() must write the password or a save/load cycle would wipe every account's credentials | M1 |
+| 2026-09-19 | Student card UID derived as "CARD_" + student ID | users.txt has no UID column, and replay_taps.txt uses CARD_S001 style tags | M1 |
+| 2026-09-19 | ClashException now holds two TimeSlot objects instead of two strings | Matches the UML, and the message is built with TimeSlot's operator<< so clashes print as readable times | M1 |
+| 2026-09-19 | Enrolment IDs generated as ENR<n>, counter advances past IDs already on disk | enrolments.txt already used ENR1/ENR2; without the bump a new enrolment would reuse an existing ID | M1 |
+| 2026-09-19 | Timetable::addSlot(slot, courseId) and removeSlotsOf(courseId) added, with a parallel courseId vector | Both are on the UML and UniversitySystem calls them; dropping a course needs to know which slots came from it | M1 (M2 file - flagged to M2) |

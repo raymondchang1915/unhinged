@@ -1,6 +1,8 @@
 #ifndef EXCEPTIONS_H
 #define EXCEPTIONS_H
 
+#include "TimeSlot.h"
+
 #include <exception>
 #include <string>
 using namespace std;
@@ -65,12 +67,12 @@ public:
 
 class ClashException : public EnrolmentException {
 private:
-    string slotA;   // slot descriptions, not TimeSlot objects
-    string slotB;
+    TimeSlot slotA;
+    TimeSlot slotB;
 public:
-    ClashException(string slotA, string slotB);
-    string getSlotA() const;
-    string getSlotB() const;
+    ClashException(TimeSlot slotA, TimeSlot slotB);
+    TimeSlot getSlotA() const;
+    TimeSlot getSlotB() const;
 };
 
 class AlreadyEnrolledException : public EnrolmentException {

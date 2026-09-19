@@ -48,5 +48,5 @@ void Administrator::generateEnrolmentReport() {
 }
 
 string Administrator::toLine() const {
-    return "ADM|" + getId() + "|" + getName();
+    return "Admin," + getId() + "," + getName() + "," + getPassword();
 }

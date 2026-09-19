@@ -13,5 +13,5 @@ int LectureCourse::calculateCredits() const {
 }
 
 string LectureCourse::toLine() const {
-    return "LEC|" + Course::toLine();
+    return "LEC," + Course::toLine() + ",0," + prereqToLine() + "," + slotsToLine();
 }

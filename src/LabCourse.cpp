@@ -17,5 +17,5 @@ int LabCourse::calculateCredits() const {
 }
 
 string LabCourse::toLine() const {
-    return "LAB|" + Course::toLine() + "|" + to_string(labHours);
+    return "LAB," + Course::toLine() + "," + to_string(labHours) + "," + prereqToLine() + "," + slotsToLine();
 }

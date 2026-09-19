@@ -1,5 +1,14 @@
 #include "Exceptions.h"
 
+#include <sstream>
+
+// builds the clash message using TimeSlot's own operator<<
+static string describeClash(const TimeSlot& a, const TimeSlot& b) {
+    ostringstream os;
+    os << "Error: Timetable clash between " << a << " and " << b << ".";
+    return os.str();
+}
+
 
 // base
 
@@ -48,11 +57,11 @@ string CourseFullException::getCourseCode() const { return courseCode; }
 int CourseFullException::getCapacity() const { return capacity; }
 
 
-ClashException::ClashException(string slotA, string slotB) : EnrolmentException("Error: Timetable clash between " + slotA + " and " + slotB + "."), slotA(slotA), slotB(slotB) {}
+ClashException::ClashException(TimeSlot slotA, TimeSlot slotB) : EnrolmentException(describeClash(slotA, slotB)), slotA(slotA), slotB(slotB) {}
 
-string ClashException::getSlotA() const { return slotA; }
+TimeSlot ClashException::getSlotA() const { return slotA; }
 
-string ClashException::getSlotB() const { return slotB; }
+TimeSlot ClashException::getSlotB() const { return slotB; }
 
 
 

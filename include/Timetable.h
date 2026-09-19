@@ -10,6 +10,7 @@
 class Timetable {
     private:
     std::vector<TimeSlot> slots;
+    std::vector<std::string> slotCourses;   // parallel to slots: which course each one came from
 
     public:
     Timetable() = default;
@@ -18,6 +19,11 @@ class Timetable {
     bool hasClash(const TimeSlot& newSlot) const;
 
     void addSlot(const TimeSlot& slot); //adds slots
+
+    // M1 addition: remembering which course a slot belongs to is what makes
+    // removeSlotsOf() possible when a student drops a course
+    void addSlot(const TimeSlot& slot, const std::string& courseId);
+    void removeSlotsOf(const std::string& courseId);
 
     void clear(); //clears slots
 

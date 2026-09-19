@@ -1,10 +1,13 @@
 #include "Enrolment.h"
+#include "Exceptions.h"
+
+#include <sstream>
 
 int Enrolment::nextId = 1;
 
 // new enrolment: the ID is generated
 Enrolment::Enrolment(string sid, string cid, string date): studentId(sid), courseId(cid), enrolmentDate(date) 
-{ id = "E" + to_string(nextId); 
+{ id = "ENR" + to_string(nextId); 
     nextId++;
 }
 
@@ -30,7 +33,7 @@ string Enrolment::getEnrolmentDate() const {
 }
 
 string Enrolment::toLine() const {
-    return id + "|" + studentId + "|" + courseId + "|" + enrolmentDate;
+    return id + "," + studentId + "," + courseId + "," + enrolmentDate;
 }
 
 // sorts by enrolment ID
@@ -43,4 +46,32 @@ ostream& operator<<(ostream& os, const Enrolment& e) {
        << " in course " << e.getCourseId()
        << " on " << e.getEnrolmentDate();
     return os;
+}
+// enrolments.txt format:  id,studentId,courseId,date
+Enrolment* Enrolment::fromLine(string line) {
+    stringstream ss(line);
+    string id, studentId, courseId, date;
+
+    getline(ss, id, ',');
+    getline(ss, studentId, ',');
+    getline(ss, courseId, ',');
+    getline(ss, date);
+
+    if (id == "" || studentId == "" || courseId == "") {
+        throw CorruptDataException("enrolments.txt", 0);
+    }
+
+    // keep the counter ahead of every ID already on disk, so new enrolments never collide
+    if (id.rfind("ENR", 0) == 0) {
+        string digits = id.substr(3);
+        bool allDigits = digits != "";
+        for (int i = 0; i < (int)digits.size(); i++) {
+            if (!isdigit(digits[i])) allDigits = false;
+        }
+        if (allDigits && stoi(digits) >= nextId) {
+            nextId = stoi(digits) + 1;
+        }
+    }
+
+    return new Enrolment(id, studentId, courseId, date);
 }

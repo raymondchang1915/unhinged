@@ -24,6 +24,7 @@ public:
     string getEnrolmentDate() const;
 
     string toLine() const;
+    static Enrolment* fromLine(string line);   // Repository needs a pointer factory
 
     bool operator<(const Enrolment& other) const;   // lets a vector of enrolments be sorted
 };

@@ -2,9 +2,7 @@
 #include <iostream>
 
 Student::Student(string i, string h, string p, string u)
-    : Person(i, h, p) {
-    // TODO: u is the card number - pass it to StudentCard once M2 pushes that class
-    (void)u;
+    : Person(i, h, p), card(u) {
 }
 
 Student::~Student(){}
@@ -21,16 +19,44 @@ void Student::showDashboard() {
 }
 
 void Student::enrol(string courseId) {
-    // TODO: needs Course lookup (M3) and Timetable::hasClash (M2)
-    // check order: already enrolled -> prerequisites -> capacity -> clash
+    // the real work lives in UniversitySystem::enrolStudent, which owns the repositories
     cout << "enrol not implemented yet: " << courseId << "\n";
 }
 
 void Student::drop(string courseId) {
-    // TODO: remove enrolment, then timetable.removeSlotsOf(courseId)
+    // the real work lives in UniversitySystem::dropStudent
     cout << "drop not implemented yet: " << courseId << "\n";
 }
 
+const StudentCard& Student::getCard() const {
+    return card;
+}
+
+Timetable& Student::getTimetable() {
+    return timetable;
+}
+
+const Timetable& Student::getTimetable() const {
+    return timetable;
+}
+
+const vector<string>& Student::getCompletedCourses() const {
+    return completedCourses;
+}
+
+void Student::addCompletedCourse(string courseCode) {
+    completedCourses.push_back(courseCode);
+}
+
+// Student,id,name,password,completedCourses   (completed are ';' separated, NONE if empty)
 string Student::toLine() const {
-    return "STU|" + getId() + "|" + getName();
+    string completed = "NONE";
+    for (int i = 0; i < (int)completedCourses.size(); i++) {
+        if (i == 0) {
+            completed = completedCourses[i];
+        } else {
+            completed += ";" + completedCourses[i];
+        }
+    }
+    return "Student," + getId() + "," + getName() + "," + getPassword() + "," + completed;
 }

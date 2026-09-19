@@ -17,6 +17,7 @@ public:
 
     string getId() const;
     string getName() const;
+    string getPassword() const;   // needed by toLine() so the password survives a save/load
     bool login(string pw) const;
 //virtual function and equallling it to 0 makes this an abstract class
     virtual void showDashboard() = 0;   // each role draws its own menu

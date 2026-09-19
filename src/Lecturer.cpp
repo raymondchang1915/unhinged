@@ -34,5 +34,5 @@ void Lecturer::viewEnrolmentList(string courseId) {
 }
 
 string Lecturer::toLine() const {
-    return "LEC|" + getId() + "|" + getName();
+    return "Lecturer," + getId() + "," + getName() + "," + getPassword();
 }
