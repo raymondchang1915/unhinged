@@ -1,55 +1,54 @@
 #ifndef ATTENDANCESESSION_H
 #define ATTENDANCESESSION_H
 
-//headers
-#include <string>
-#include <vector>
-#include "TimeSlot.h"
 #include "AttendanceRecord.h"
 #include "CorrectionRecord.h"
+#include "TimeSlot.h"
 
-class AttendanceSession{
-    private:
-    static int defaultDurationMin;
-    std::string id;
-    std::string courseId;
+#include <string>
+#include <vector>
+using namespace std;
+
+// one class meeting that students tap into
+class AttendanceSession {
+private:
+    static int defaultDurationMin;   // shared by every session: 10 minutes
+
+    string id;
+    string courseId;
     TimeSlot slot;
-    std::string openedAt;
+    string openedAt;
     int durationMin;
     bool isOpen;
 
-    //Set as pointers in order to hold both normal records and correction records
-    std::vector<AttendanceRecord*> records;
+    // pointers, so one vector can hold both AttendanceRecord and CorrectionRecord
+    vector<AttendanceRecord*> records;
 
-    public:
-    AttendanceSession(std::string sessId,std::string courseId,TimeSlot slot,std::string timeOpened,int duration = 10);
+public:
+    AttendanceSession(string sessId, string courseId, TimeSlot slot, string timeOpened, int duration = 10);
 
-    //Rule of 5 implemented
+    // rule of 5: the records are owned pointers, so copying needs deep copies
     AttendanceSession(const AttendanceSession& other);
     AttendanceSession& operator=(const AttendanceSession& other);
     AttendanceSession(AttendanceSession&& other) noexcept;
     AttendanceSession& operator=(AttendanceSession&& other) noexcept;
+    ~AttendanceSession();
 
-    //Getter functions
-    std::string getId() const;
-    std::string getCourseId() const;
+    string getId() const;
+    string getCourseId() const;
     TimeSlot getSlot() const;
-    std::string getOpenedAt() const;
+    string getOpenedAt() const;
     int getDurationMin() const;
     bool getIsOpen() const;
-    const std::vector<AttendanceRecord*>& getRecords() const;
+    const vector<AttendanceRecord*>& getRecords() const;
 
     void close();
     bool isExpired() const;
-    void markPresent(std::string studentId,std::string capturedBy, bool notify = true);
-    void appendCorrection(std::string studentId,std::string lecturerId,std::string reason, bool notify = true);
+    void markPresent(string studentId, string capturedBy, bool notify = true);
+    void appendCorrection(string studentId, string lecturerId, string reason, bool notify = true);
 
-    //Ease of saving files
-    std::string toLine() const;
-    static AttendanceSession* fromLine(std::string line);
-
-    // Destructor to clean up
-    ~AttendanceSession();
-
+    string toLine() const;
+    static AttendanceSession* fromLine(string line);
 };
+
 #endif

@@ -30,9 +30,7 @@ public:
 
     Repository<Person>& getUsers() { return users; }
     Repository<Course>& getCourses() { return courses; }//functions to let other see the repos
-    Repository<Enrolment>& getEnrolments() { return enrolments; }
     AttendanceRegister& getAttendance() { return attendance; }
-    const std::string& getDataDir() const { return dataDir; }
 
     void initialize(const std::string& dir = "data");//default folder data
     void loadAll();//functions to load save and start the system
@@ -40,11 +38,9 @@ public:
     //pass by reference '&' so that the string is given to functions without making a copy
     //const used so no change can occur
     Student* findStudent(const std::string& id);//pointer return used so that its fast and modifies the real object and not found can happen
-    Lecturer* findLecturer(const std::string& id);//functions to find ppl using the Ids
     Course* findCourse(const std::string& code);
 
     std::vector<Enrolment*> getEnrolmentsForStudent(const std::string& studentId);
-    std::vector<Enrolment*> getEnrolmentsForCourse(const std::string& courseCode);//functions for enrollments with relavant data
     std::string resolveUidToStudentId(const std::string& uid);
 
     void enrolStudent(const std::string& studentId, const std::string& courseCode);//functions to enrol or drop

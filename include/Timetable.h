@@ -2,35 +2,31 @@
 #define TIMETABLE_H
 
 #include "TimeSlot.h"
-#include <vector>
-#include <string>
+
 #include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
 
-//timetable owns timeslot and manages the collection of scheduled timeslots for a student
+// a student's weekly schedule: the slots they sit in, and which course each came from
 class Timetable {
-    private:
-    std::vector<TimeSlot> slots;
-    std::vector<std::string> slotCourses;   // parallel to slots: which course each one came from
+private:
+    vector<TimeSlot> slots;
+    vector<string> slotCourses;   // slotCourses[i] is the course that gave us slots[i]
 
-    public:
-    Timetable() = default;
+public:
+    Timetable();
 
-    // Checks if adding a slot would clash with any existing slot
-    bool hasClash(const TimeSlot& newSlot) const;
+    bool hasClash(const TimeSlot& newSlot) const;   // would adding this slot double-book them?
 
-    void addSlot(const TimeSlot& slot); //adds slots
+    void addSlot(const TimeSlot& slot);
+    void addSlot(const TimeSlot& slot, const string& courseId);
+    void removeSlotsOf(const string& courseId);     // used when a student drops a course
+    void clear();
 
-    // M1 addition: remembering which course a slot belongs to is what makes
-    // removeSlotsOf() possible when a student drops a course
-    void addSlot(const TimeSlot& slot, const std::string& courseId);
-    void removeSlotsOf(const std::string& courseId);
+    const vector<TimeSlot>& getSlots() const;
 
-    void clear(); //clears slots
-
-    const std::vector<TimeSlot>& getSlots() const; //returns slots
-
-    // Stream insertion operator (FR6.2)
-    friend std::ostream& operator<<(std::ostream& os, const Timetable& tt);
+    friend ostream& operator<<(ostream& os, const Timetable& tt);
 };
 
 #endif

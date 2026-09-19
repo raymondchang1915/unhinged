@@ -16,7 +16,6 @@ public:
     void beginSession() override;//ignores parent classes generic function
     CaptureEvent captureNext() override;
     void endSession() override;
-    bool hasMoreEvents() const;
 };
 
 #endif

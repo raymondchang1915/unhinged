@@ -2,14 +2,15 @@
 #define CONSOLECARDREADER_H
 
 #include "AttendanceCapture.h"
+
 #include <string>
+using namespace std;
 
-class ConsoleCardReader: public AttendanceCapture{
-    public:
+// stands in for a real USB card reader: the UID is typed at the keyboard
+class ConsoleCardReader : public AttendanceCapture {
+public:
     void beginSession() override;
-
     CaptureEvent captureNext() override;
-
     void endSession() override;
 };
 

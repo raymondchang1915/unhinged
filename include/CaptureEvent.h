@@ -1,18 +1,26 @@
 #ifndef CAPTUREEVENT_H
 #define CAPTUREEVENT_H
+
 #include <string>
-class CaptureEvent{
+using namespace std;
+
+// one card tap: who tapped and when
+class CaptureEvent {
 private:
-    std::string uid;
-    std::string timestamp;
+    string uid;
+    string timestamp;
+
 public:
-    CaptureEvent(std::string u,std::string t)
-    {
-        this->uid=u;
-        this->timestamp=t;
+    CaptureEvent(string u, string t) : uid(u), timestamp(t) {
     }
-    std::string getUid() const {return uid;}
-    std::string getTimestamp() const {return timestamp;}
+
+    string getUid() const {
+        return uid;
+    }
+
+    string getTimestamp() const {
+        return timestamp;
+    }
 };
 
 #endif

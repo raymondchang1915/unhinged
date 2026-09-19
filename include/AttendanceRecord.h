@@ -1,40 +1,37 @@
 #ifndef ATTENDANCERECORD_H
 #define ATTENDANCERECORD_H
-
-#include <string>
 #include <iostream>
+#include <string>
+using namespace std;
 
-class AttendanceRecord{
-    protected: //proteced so the correction record can get these
 
-    std::string studentId;
-    std::string sessionId;
-    std::string timestamp;
-    std::string status; //whether the student is present or not
-    std::string capturedBy;
+//unique to a specific student id and a session id
+// a data class that store data . 
+class AttendanceRecord {
+protected:   // protected so CorrectionRecord can read these directly
+    string studentId;
+    string sessionId;
+    string timestamp;
+    string status;       // "Present" or "Absent"
+    string capturedBy;   // how it was captured: CardTap, ConsoleTap, Manual
 
-    public:
-    //Constructor
-    AttendanceRecord(std::string stuId,std::string sessId,std::string ts,std::string stat,std::string capBy);
+public:
+    AttendanceRecord(string stuId, string sessId, string ts, string stat, string capBy);
+    virtual ~AttendanceRecord() = default;
 
-    //destructor
-    virtual ~AttendanceRecord()=default;
+    string getStudentId() const;
+    string getSessionId() const;
+    string getTimestamp() const;
+    string getStatus() const;
+    string getCapturedBy() const;
 
-    //from previous data (getters)
-    std::string getStudentId() const;
-    std::string getSessionId() const;
-    std::string getTimestamp() const;
-    std::string getStatus() const;
-    std::string getCapturedBy() const;
+    // virtual copy: a session can copy its records without knowing which kind each one is
+    virtual AttendanceRecord* clone() const; //needs virtual since it copies either parent or child classes
 
-    //Virtual copy constructor creates perfect copy and hands out pointer
-    virtual AttendanceRecord* clone() const;
+    virtual string toLine() const;
+    static AttendanceRecord* fromLine(string line); //made static so the function can be called from the class blueprint without the existence f the object
 
-    //compresses data into single comma separated string
-    virtual std::string toLine() const;
-    static AttendanceRecord* fromLine(std::string line);
-
-    //otherwise cannot access protected data
-    friend std::ostream& operator<<(std::ostream& os,const AttendanceRecord& r);
+    friend ostream& operator<<(ostream& os, const AttendanceRecord& r);
 };
+
 #endif

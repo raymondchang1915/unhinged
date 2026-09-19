@@ -9,7 +9,7 @@ using namespace std;
 FileReplayCapture::FileReplayCapture(string path) {
     this->filePath = path;
 }
-
+//for testing
 void FileReplayCapture::beginSession() {
     fileStream.open(filePath);//open the text file if not found throws the exception
     if (!fileStream.is_open()) {
@@ -18,13 +18,13 @@ void FileReplayCapture::beginSession() {
     cout<<"File Replay Started:"<< filePath <<endl;//prints
 }
 
-CaptureEvent FileReplayCapture::captureNext() {//checks if the file is closed OR if it reached eof()rnf f file.
+CaptureEvent FileReplayCapture::captureNext() {//checks if the file is closed OR if it reached the (end of file) eof()rnf f file.
     if (!fileStream.is_open() || fileStream.eof()) {
         return CaptureEvent("EOF", "");//returns a special event saying "EOF".
     }
 
     string line;
-    while (getline(fileStream, line)) {//loop grabs the next line from the text file
+    while (getline(fileStream, line)) {//loop grabs the next line from the text file. first argument is te destination second is variable name of line
         if (line.empty() || line[0] == '#') continue; // skip blank lines and comments
         stringstream ss(line);//turns the line into stringstream
         string uid, timestamp;
@@ -37,10 +37,6 @@ CaptureEvent FileReplayCapture::captureNext() {//checks if the file is closed OR
     }
 
     return CaptureEvent("EOF", "");//if while loop reaches the end of file sends EOF
-}
-
-bool FileReplayCapture::hasMoreEvents() const {
-    return fileStream.is_open() && !fileStream.eof(); //helping function if hasmoreevents is caled checks if the file is open and has reached the end of the file
 }
 
 void FileReplayCapture::endSession() {

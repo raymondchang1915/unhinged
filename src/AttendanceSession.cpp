@@ -11,21 +11,21 @@ AttendanceSession::AttendanceSession(string sessId, string cId, TimeSlot s, stri
     : id(sessId), courseId(cId), slot(s), openedAt(timeOpened), durationMin(duration), isOpen(true) {
 }
 
-// rule of 5: records are owned pointers, so every copy needs its own clones
+// copy constructor: deep copy this is needed in the case of push back to vectors and when vectors resize. this creates a new object 
 AttendanceSession::AttendanceSession(const AttendanceSession& other)
     : id(other.id), courseId(other.courseId), slot(other.slot), openedAt(other.openedAt),
       durationMin(other.durationMin), isOpen(other.isOpen) {
-    for (AttendanceRecord* rec : other.records) {
-        if (rec) {
-            records.push_back(rec->clone());
+    for (int i = 0; i < (int)other.records.size(); i++) {
+        if (other.records[i] != nullptr) {
+            records.push_back(other.records[i]->clone());
         }
     }
 }
-
+//overwrite an existing object with a deep copy of another
 AttendanceSession& AttendanceSession::operator=(const AttendanceSession& other) {
     if (this != &other) {
-        for (AttendanceRecord* rec : records) {
-            delete rec;
+        for (int i = 0; i < (int)records.size(); i++) {
+            delete records[i];
         }
         records.clear();
 
@@ -36,45 +36,44 @@ AttendanceSession& AttendanceSession::operator=(const AttendanceSession& other) 
         durationMin = other.durationMin;
         isOpen = other.isOpen;
 
-        for (AttendanceRecord* rec : other.records) {
-            if (rec) {
-                records.push_back(rec->clone());
+        for (int i = 0; i < (int)other.records.size(); i++) {
+            if (other.records[i] != nullptr) {
+                records.push_back(other.records[i]->clone());
             }
         }
     }
     return *this;
 }
 
-// move: steal the records instead of cloning them, then leave the other side empty
+// move: builds a brand new but instead move the daaata rather than cloning it
 AttendanceSession::AttendanceSession(AttendanceSession&& other) noexcept
-    : id(move(other.id)), courseId(move(other.courseId)), slot(other.slot),
-      openedAt(move(other.openedAt)), durationMin(other.durationMin), isOpen(other.isOpen),
-      records(move(other.records)) {
+    : id(other.id), courseId(other.courseId), slot(other.slot), openedAt(other.openedAt),
+      durationMin(other.durationMin), isOpen(other.isOpen), records(other.records) {
     other.records.clear();
 }
-
+//move assignment operator: moving the stolen data frm a temporaary object to an exisitng one
 AttendanceSession& AttendanceSession::operator=(AttendanceSession&& other) noexcept {
     if (this != &other) {
-        for (AttendanceRecord* rec : records) {
-            delete rec;
+        for (int i = 0; i < (int)records.size(); i++) {
+            delete records[i];
         }
         records.clear();
 
-        id = move(other.id);
-        courseId = move(other.courseId);
+        id = other.id;
+        courseId = other.courseId;
         slot = other.slot;
-        openedAt = move(other.openedAt);
+        openedAt = other.openedAt;
         durationMin = other.durationMin;
         isOpen = other.isOpen;
-        records = move(other.records);
+        records = other.records;
         other.records.clear();
     }
     return *this;
 }
 
 AttendanceSession::~AttendanceSession() {
-    for (AttendanceRecord* rec : records) {
-        delete rec;
+    for (int i = 0; i < (int)records.size(); i++) {
+        delete records[i];
     }
     records.clear();
 }
@@ -112,20 +111,23 @@ void AttendanceSession::close() {
     cout << "Session " << id << " is now closed." << endl;
 }
 
-// a closed session counts as expired; taps are refused either way
+// a closed session counts as expired, and taps are refused either way
 bool AttendanceSession::isExpired() const {
     return !isOpen;
 }
 
 void AttendanceSession::markPresent(string studentId, string capturedBy, bool notify) {
-    records.push_back(new AttendanceRecord(studentId, id, "2026-09-17 10:00", "Present", capturedBy));
+    AttendanceRecord* record = new AttendanceRecord(studentId, id, "2026-09-17 10:00", "Present", capturedBy);
+    records.push_back(record);
     if (notify) {
         cout << "Recorded: Student " << studentId << " marked present." << endl;
     }
 }
 
 void AttendanceSession::appendCorrection(string studentId, string lecturerId, string reason, bool notify) {
-    records.push_back(new CorrectionRecord(studentId, id, "2026-09-17 10:05", "Present", "Manual", lecturerId, reason));
+    AttendanceRecord* correction = new CorrectionRecord(studentId, id, "2026-09-17 10:05",
+                                                        "Present", "Manual", lecturerId, reason);
+    records.push_back(correction);
     if (notify) {
         cout << "Correction appended for Student " << studentId << " by Lecturer " << lecturerId << endl;
     }
@@ -133,8 +135,12 @@ void AttendanceSession::appendCorrection(string studentId, string lecturerId, st
 
 // id,courseId,day;start;end;location,openedAt,durationMin,isOpen
 string AttendanceSession::toLine() const {
+    string openFlag = "0";
+    if (isOpen) {
+        openFlag = "1";
+    }
     return id + "," + courseId + "," + slot.toLine() + "," + openedAt + ","
-         + to_string(durationMin) + "," + (isOpen ? "1" : "0");
+         + to_string(durationMin) + "," + openFlag;
 }
 
 AttendanceSession* AttendanceSession::fromLine(string line) {
@@ -152,8 +158,13 @@ AttendanceSession* AttendanceSession::fromLine(string line) {
         return nullptr;
     }
 
-    int duration = (durStr == "") ? defaultDurationMin : stoi(durStr);
-    AttendanceSession* session = new AttendanceSession(sessId, cId, TimeSlot::fromLine(slotStr), timeOpened, duration);
+    int duration = defaultDurationMin;
+    if (durStr != "") {
+        duration = stoi(durStr);
+    }
+
+    TimeSlot slot = TimeSlot::fromLine(slotStr);
+    AttendanceSession* session = new AttendanceSession(sessId, cId, slot, timeOpened, duration);
     if (openStr == "0") {
         session->close();
     }

@@ -1,19 +1,19 @@
 #ifndef ATTENDANCECAPTURE_H
 #define ATTENDANCECAPTURE_H
+
 #include "CaptureEvent.h"
 
-//An abstract interface
-class AttendanceCapture{
-    public:
-    virtual void beginSession()=0;
+// abstract interface: the register takes taps from any of these without
+// knowing whether a person typed them or a file replayed them
+class AttendanceCapture {
+public:
+    virtual void beginSession() = 0;
 
-    //Returns UID & timestamp
-    virtual CaptureEvent captureNext()=0;
+    virtual CaptureEvent captureNext() = 0;   // returns the UID and timestamp of one tap
 
-    virtual void endSession()=0;
+    virtual void endSession() = 0;
 
-    //Destructor for child destructor then own
-    virtual ~AttendanceCapture()=default;
+    virtual ~AttendanceCapture() = default;   // so deleting through the base runs the child's destructor
 };
 
 #endif

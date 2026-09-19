@@ -1,17 +1,16 @@
 #include "CorrectionRecord.h"
-#include <string>
+using namespace std;
 
-//constructor
-CorrectionRecord::CorrectionRecord(std::string stuId, std::string sessId, std::string ts, std::string stat,
-                                   std::string capBy, std::string lecturerId, std::string rsn)
+CorrectionRecord::CorrectionRecord(string stuId, string sessId, string ts, string stat,
+                                   string capBy, string lecturerId, string rsn)
     : AttendanceRecord(stuId, sessId, ts, stat, capBy), actingLecturerId(lecturerId), reason(rsn) {
 }
 
-std::string CorrectionRecord::getActingLecturerId() const {
+string CorrectionRecord::getActingLecturerId() const {
     return actingLecturerId;
 }
 
-std::string CorrectionRecord::getReason() const {
+string CorrectionRecord::getReason() const {
     return reason;
 }
 
@@ -19,6 +18,8 @@ AttendanceRecord* CorrectionRecord::clone() const {
     return new CorrectionRecord(*this);
 }
 
-std::string CorrectionRecord::toLine() const {
-    return "CORRECTION," + studentId + "," + sessionId + "," + timestamp + "," + status + "," + capturedBy + "," + actingLecturerId + "," + reason;
+// CORRECTION,...same six fields...,lecturerId,reason
+string CorrectionRecord::toLine() const {
+    return "CORRECTION," + studentId + "," + sessionId + "," + timestamp + "," + status + ","
+         + capturedBy + "," + actingLecturerId + "," + reason;
 }

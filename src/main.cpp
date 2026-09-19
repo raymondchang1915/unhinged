@@ -130,7 +130,7 @@ public:
                     if (!readWord("Enter course code for the report: ", courseCode)) return;
                     Course* course = sys.findCourse(courseCode);
                     if (!course) throw SystemException("Course '" + courseCode + "' not found.");
-                    sys.getAttendance().courseAttendanceReport(courseCode, course->getEnrolledIds());
+                    sys.getAttendance().courseAttendanceReport(courseCode);
                 } else if (choice != -1){
                     cout<<"Invalid choice. Please enter 1 to 6.\n";
                 }

@@ -1,0 +1,422 @@
+@startuml
+skinparam classAttributeIconSize 0
+hide empty members
+
+' ================= PERSON =================
+abstract class Person {
+  - id : string
+  - name : string
+  - password : string
+  + getId() : string {query}
+  + getName() : string {query}
+  + getPassword() : string {query}
+  + login(pw : string) : bool {query}
+  + {static} fromLine(line : string) : Person*
+  + {abstract} showDashboard() : void
+  + {abstract} toLine() : string {query}
+  + {abstract} ~Person()
+}
+
+class Student {
+  - completedCourses : vector<string>
+  - card : StudentCard
+  - timetable : Timetable
+  + showDashboard() : void
+  + enrol(courseId : string) : void
+  + drop(courseId : string) : void
+  + getCard() : StudentCard& {query}
+  + getTimetable() : Timetable&
+  + getCompletedCourses() : vector<string>& {query}
+  + addCompletedCourse(courseCode : string) : void
+  + toLine() : string {query}
+}
+
+class Lecturer {
+  + showDashboard() : void
+  + openSession(courseId : string, slot : TimeSlot, durationMin : int) : void
+  + closeSession(sessionId : string) : void
+  + viewEnrolmentList(courseId : string) : void
+  + toLine() : string {query}
+}
+
+class Administrator {
+  + showDashboard() : void
+  + createUser() : void
+  + updateUser(userId : string) : void
+  + removeUser(userId : string) : void
+  + createCourse() : void
+  + editCourse(courseCode : string) : void
+  + removeCourse(courseCode : string) : void
+  + generateEnrolmentReport() : void
+  + toLine() : string {query}
+}
+
+Person <|-- Student
+Person <|-- Lecturer
+Person <|-- Administrator
+
+' ================= COURSE =================
+abstract class Course {
+  - code : string
+  - title : string
+  - creditVal : int
+  - capacity : int
+  - assignedLectId : string
+  - prereq : vector<string>
+  - enrolledIds : vector<string>
+  - slots : vector<TimeSlot>
+  + getId() : string {query}
+  + getTitle() : string {query}
+  + getCreditVal() : int {query}
+  + getCapacity() : int {query}
+  + getAssignedLectId() : string {query}
+  + getPrerequisites() : vector<string> {query}
+  + getEnrolledIds() : vector<string> {query}
+  + getSlots() : vector<TimeSlot>& {query}
+  + isFull() : bool {query}
+  + addStudent(studentId : string) : void
+  + removeStudent(studentId : string) : void
+  + addPrereq(courseCode : string) : void
+  + addSlot(slot : TimeSlot) : void
+  + toLine() : string {query}
+  + {static} fromLine(line : string) : Course*
+  + {abstract} calculateCredits() : int {query}
+  + {abstract} ~Course()
+  + operator<<()
+}
+
+class LectureCourse {
+  + calculateCredits() : int {query}
+}
+class LabCourse {
+  - labHours : int
+  + calculateCredits() : int {query}
+}
+class ProjectCourse {
+  - isPassFail : bool
+  + calculateCredits() : int {query}
+}
+
+Course <|-- LectureCourse
+Course <|-- LabCourse
+Course <|-- ProjectCourse
+
+note bottom of Course
+  fromLine() reads a subtype tag
+  (LEC / LAB / PROJ) and constructs
+  the correct derived class.
+  Same pattern for Person roles and
+  AttendanceRecord vs CorrectionRecord.
+end note
+
+' ================= SCHEDULING =================
+class TimeSlot {
+  - day : int
+  - startMin : int
+  - endMin : int
+  - location : string
+  + overlaps(other : TimeSlot) : bool {query}
+  + operator&&(other : TimeSlot) : bool {query}
+  + toLine() : string {query}
+  + {static} fromLine(line : string) : TimeSlot
+  + operator<<()
+}
+
+class Timetable {
+  - slots : vector<TimeSlot>
+  - slotCourses : vector<string>
+  + addSlot(slot : TimeSlot) : void
+  + addSlot(slot : TimeSlot, courseId : string) : void
+  + removeSlotsOf(courseId : string) : void
+  + hasClash(newSlot : TimeSlot) : bool {query}
+  + clear() : void
+  + getSlots() : vector<TimeSlot>& {query}
+  + operator<<()
+}
+
+note right of Timetable
+  slotCourses runs parallel to slots:
+  it remembers which course each slot
+  came from, so removeSlotsOf() can
+  drop exactly that course's slots.
+end note
+
+class Enrolment {
+  - {static} nextId : int
+  - id : string
+  - studentId : string
+  - courseId : string
+  - enrolmentDate : string
+  + getId() : string {query}
+  + getStudentId() : string {query}
+  + getCourseId() : string {query}
+  + getEnrolmentDate() : string {query}
+  + toLine() : string {query}
+  + {static} fromLine(line : string) : Enrolment*
+  + operator<(other : Enrolment) : bool {query}
+  + operator<<()
+}
+
+Course "1" *-- "1..*" TimeSlot
+Student "1" *-- "1" Timetable
+Timetable "1" *-- "0..*" TimeSlot
+Enrolment "0..*" --> "1" Student
+Enrolment "0..*" --> "1" Course
+Course "0..*" --> "0..*" Student
+
+' ================= ATTENDANCE CORE =================
+class AttendanceRegister {
+  - sessions : vector<AttendanceSession>
+  - countSessionsFor(courseId : string) : int {query}
+  + openSession(courseId : string, slot : TimeSlot, durationMin : int) : AttendanceSession&
+  + getActiveSession(courseId : string) : AttendanceSession*
+  + getActiveSession() : AttendanceSession*
+  + findSessionById(sessionId : string) : AttendanceSession*
+  + processEvent(event : CaptureEvent) : void
+  + attendancePercent(studentId : string, courseId : string) : double {query}
+  + courseAttendanceReport(courseId : string) : void {query}
+  + save(path : string) : void {query}
+  + load(path : string) : void
+}
+
+class AttendanceSession {
+  - {static} defaultDurationMin : int
+  - id : string
+  - courseId : string
+  - slot : TimeSlot
+  - openedAt : string
+  - durationMin : int
+  - isOpen : bool
+  - records : vector<AttendanceRecord*>
+  + close() : void
+  + isExpired() : bool {query}
+  + markPresent(studentId : string, capturedBy : string, notify : bool) : void
+  + appendCorrection(studentId : string, lecturerId : string, reason : string, notify : bool) : void
+  + toLine() : string {query}
+  + {static} fromLine(line : string) : AttendanceSession*
+  + AttendanceSession(other : AttendanceSession)
+  + operator=(other : AttendanceSession) : AttendanceSession&
+  + ~AttendanceSession()
+}
+
+note right of AttendanceSession
+  Rule of 5: records are owned raw
+  pointers, so the copy operations deep
+  copy them with clone() and the move
+  operations steal them instead.
+end note
+
+class AttendanceRecord {
+  # studentId : string
+  # sessionId : string
+  # timestamp : string
+  # status : string
+  # capturedBy : string
+  + clone() : AttendanceRecord* {query}
+  + toLine() : string {query}
+  + {static} fromLine(line : string) : AttendanceRecord*
+  + operator<<()
+}
+
+class CorrectionRecord {
+  - actingLecturerId : string
+  - reason : string
+  + clone() : AttendanceRecord* {query}
+  + toLine() : string {query}
+}
+
+class CaptureEvent {
+  - uid : string
+  - timestamp : string
+  + getUid() : string {query}
+  + getTimestamp() : string {query}
+}
+
+AttendanceRegister "1" *-- "0..*" AttendanceSession
+AttendanceSession "1" *-- "0..*" AttendanceRecord
+AttendanceRecord <|-- CorrectionRecord
+
+' ================= CAPTURE =================
+abstract class AttendanceCapture {
+  + {abstract} beginSession() : void
+  + {abstract} captureNext() : CaptureEvent
+  + {abstract} endSession() : void
+  + {abstract} ~AttendanceCapture()
+}
+
+class FileReplayCapture {
+  - filePath : string
+  - fileStream : ifstream
+  + beginSession() : void
+  + captureNext() : CaptureEvent
+  + endSession() : void
+}
+
+class ConsoleCardReader {
+  + beginSession() : void
+  + captureNext() : CaptureEvent
+  + endSession() : void
+}
+
+class StudentCard {
+  - uid : char*
+  + getUid() : string {query}
+  + toLine() : string {query}
+  + StudentCard(other : StudentCard)
+  + operator=(other : StudentCard) : StudentCard&
+  + ~StudentCard()
+}
+
+AttendanceCapture <|-- FileReplayCapture
+AttendanceCapture <|-- ConsoleCardReader
+Student "1" *-- "1" StudentCard
+
+AttendanceRegister ..> CaptureEvent
+FileReplayCapture ..> CaptureEvent
+ConsoleCardReader ..> CaptureEvent
+
+' ================= EXCEPTIONS =================
+abstract class SystemException {
+  - message : string
+  + what() : const char* {query}
+  + {abstract} ~SystemException()
+}
+class UserException
+class EnrolmentException
+class AttendanceException
+class PersistenceException
+
+class UserNotFoundException {
+  - userId : string
+}
+class InvalidCredentialsException
+
+class PrerequisiteNotMetException {
+  - courseCode : string
+  - missingPrereq : string
+}
+class CourseFullException {
+  - courseCode : string
+  - capacity : int
+}
+class ClashException {
+  - slotA : TimeSlot
+  - slotB : TimeSlot
+}
+class AlreadyEnrolledException {
+  - courseCode : string
+}
+class SessionClosedException
+class NotEnrolledException
+class DuplicateAttendanceException
+class CorruptDataException {
+  - filePath : string
+  - lineNo : int
+}
+class FileNotFoundException {
+  - filePath : string
+}
+
+SystemException <|-- UserException
+SystemException <|-- EnrolmentException
+SystemException <|-- AttendanceException
+SystemException <|-- PersistenceException
+UserException <|-- UserNotFoundException
+UserException <|-- InvalidCredentialsException
+EnrolmentException <|-- PrerequisiteNotMetException
+EnrolmentException <|-- CourseFullException
+EnrolmentException <|-- ClashException
+EnrolmentException <|-- AlreadyEnrolledException
+AttendanceException <|-- SessionClosedException
+AttendanceException <|-- NotEnrolledException
+AttendanceException <|-- DuplicateAttendanceException
+PersistenceException <|-- CorruptDataException
+PersistenceException <|-- FileNotFoundException
+
+' ================= PERSISTENCE =================
+class "Repository<T>" as Repository {
+  - items : map<string, T*>
+  + add(id : string, item : T*) : void
+  + add(item : T*) : void
+  + remove(id : string) : bool
+  + findById(id : string) : T*
+  + all() : vector<T*> {query}
+  + load(path : string, fromLineFactory : T* (*)(string)) : void
+  + save(path : string) : void {query}
+  + clear() : void
+  + ~Repository()
+}
+
+note right of Repository
+  Instantiated as:
+  Repository<Person>, Repository<Course>,
+  Repository<Enrolment>
+
+  Stores T* and not T, because storing
+  objects by value would slice every
+  subclass down to its base.
+
+  load() takes a factory function pointer
+  (Person::fromLine, Course::fromLine,
+  Enrolment::fromLine) because the template
+  cannot know how to parse a line itself.
+end note
+
+' ================= COORDINATOR =================
+class UniversitySystem <<singleton>> {
+  - {static} instance : UniversitySystem*
+  - dataDir : string
+  - users : Repository<Person>
+  - courses : Repository<Course>
+  - enrolments : Repository<Enrolment>
+  - attendance : AttendanceRegister
+  - UniversitySystem()
+  + {static} getInstance() : UniversitySystem&
+  + getUsers() : Repository<Person>&
+  + getCourses() : Repository<Course>&
+  + getAttendance() : AttendanceRegister&
+  + initialize(dir : string) : void
+  + loadAll() : void
+  + saveAll() : void
+  + findStudent(id : string) : Student*
+  + findCourse(code : string) : Course*
+  + getEnrolmentsForStudent(studentId : string) : vector<Enrolment*>
+  + resolveUidToStudentId(uid : string) : string
+  + enrolStudent(studentId : string, courseCode : string) : void
+  + dropStudent(studentId : string, courseCode : string) : void
+  + rebuildStudentTimetables() : void
+}
+
+note bottom of UniversitySystem
+  The constructor is private and the single
+  instance is reached through getInstance(),
+  so the whole program shares one system.
+
+  enrolStudent() runs the rules in order:
+  already enrolled -> capacity -> prerequisites
+  -> timetable clash, throwing the matching
+  exception before anything is written.
+
+  Timetables are never saved. They are rebuilt
+  from the enrolments by rebuildStudentTimetables()
+  every time the program starts.
+end note
+
+UniversitySystem *-- Repository
+UniversitySystem *-- AttendanceRegister
+AttendanceRegister ..> UniversitySystem : resolves UIDs and\nchecks enrolment
+
+' ================= UI =================
+class Menu {
+  - readChoice(choice : int&) : bool
+  - readWord(prompt : string, out : string&) : bool
+  + run() : void
+  + handleException(e : SystemException) : void
+  + studentMenu(student : Student*) : void
+  + lecturerMenu(lecturer : Lecturer*) : void
+  + adminMenu(admin : Administrator*) : void
+}
+
+Menu ..> UniversitySystem
+Menu ..> Person
+@enduml

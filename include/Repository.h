@@ -7,19 +7,20 @@
 #include <fstream>//reading writing
 #include <iostream>
 #include "Exceptions.h"
+using namespace std;
 
 // The <T> means "Type"
 template <typename T>
 class Repository {
 private:
-    std::map<std::string, T*> items;
+    std::map<string, T*> items;
 
 public:
     Repository() {}
 
     //adding an item checks if the item exists if so deletes it
     //before adding
-    void add(std::string id, T* item) {
+    void add(string id, T* item) {
         if (items.find(id) != items.end() && items[id] != item) {//items.end() reaching the end
             delete items[id];//items.find(id) looks through the entire dictionary to find 
         }
@@ -41,10 +42,6 @@ public:
             return true;
         }
         return false;
-    }
-
-    bool exists(std::string id) const {//function only reads data checks if an ID exists
-        return items.find(id) != items.end();
     }
 
     //find an item

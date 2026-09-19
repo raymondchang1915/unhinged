@@ -1,20 +1,26 @@
 #ifndef CORRECTIONRECORD_H
 #define CORRECTIONRECORD_H
+
 #include "AttendanceRecord.h"
+
 #include <string>
+using namespace std;
 
-class CorrectionRecord:public AttendanceRecord{
-    private:
-    std::string actingLecturerId;
-    std::string reason;
+// a lecturer's manual fix, stored beside the original record instead of replacing it
+class CorrectionRecord : public AttendanceRecord {
+private:
+    string actingLecturerId;
+    string reason;
 
-    public:
-    CorrectionRecord(std::string stuId,std::string sessId,std::string ts,std::string stat,std::string capBy,std::string lecturerId,std::string rsn);
-    std::string getActingLecturerId() const;
-    std::string getReason() const;
+public:
+    CorrectionRecord(string stuId, string sessId, string ts, string stat, string capBy,
+                     string lecturerId, string rsn);
+
+    string getActingLecturerId() const;
+    string getReason() const;
+
     AttendanceRecord* clone() const override;
-    std::string toLine() const override;
-
+    string toLine() const override;
 };
 
 #endif

@@ -1,19 +1,24 @@
 #include "AttendanceRegister.h"
-
+#include "UniversitySystem.h"   // in the .cpp only, so the headers do not include each other
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 using namespace std;
 
+AttendanceRegister::AttendanceRegister() {
+}
+//sessions is a vector full of attendance sessions. defined in header
 AttendanceSession& AttendanceRegister::openSession(string courseId, TimeSlot slot, int durationMin) {
-    string sessId = courseId + "_SESS_" + to_string(sessions.size() + 1);
-    sessions.push_back(AttendanceSession(sessId, courseId, slot, "2026-09-17 10:00", durationMin));
+    string sessId = courseId + "_SESS_" + to_string(sessions.size() + 1); //the course ID plus the session.size creates a unique session ID
+    AttendanceSession newSession(sessId, courseId, slot, "2026-09-17 10:00", durationMin); //this is intialisation of the new ID
+    sessions.push_back(newSession); //pushing the new session back to the stack
+
     cout << "Successfully opened attendance session: " << sessId
          << " for course " << courseId << " (duration: " << durationMin << " mins)\n";
     return sessions.back();
 }
-
-// newest first, so the session opened most recently wins
+// since sessions.size return an unsigned integer (int) is used to turn it back to int
+// search in reverse since we are working on a stack
 AttendanceSession* AttendanceRegister::getActiveSession(string courseId) {
     for (int i = (int)sessions.size() - 1; i >= 0; i--) {
         if (sessions[i].getCourseId() == courseId && !sessions[i].isExpired()) {
@@ -25,7 +30,7 @@ AttendanceSession* AttendanceRegister::getActiveSession(string courseId) {
 
 AttendanceSession* AttendanceRegister::getActiveSession() {
     for (int i = (int)sessions.size() - 1; i >= 0; i--) {
-        if (!sessions[i].isExpired()) {
+        if (!sessions[i].isExpired()) {//not expired
             return &sessions[i];
         }
     }
@@ -41,52 +46,53 @@ AttendanceSession* AttendanceRegister::findSessionById(string sessionId) {
     return nullptr;
 }
 
-// the shared tail of both processEvent overloads: find the open session, reject
-// a second tap from the same student, then write the record
-void AttendanceRegister::recordTap(const string& studentId, const string& capturedBy) {
+vector<AttendanceSession>& AttendanceRegister::getAllSessions() {
+    return sessions;
+}
+
+const vector<AttendanceSession>& AttendanceRegister::getAllSessions() const {
+    return sessions;
+}
+
+// how a card tap is processed
+void AttendanceRegister::processEvent(CaptureEvent event) {
     AttendanceSession* session = getActiveSession();
-    if (!session) {
+    if (session == nullptr) {   // check if there are any sessions active
         throw SessionClosedException();
     }
 
-    for (AttendanceRecord* rec : session->getRecords()) {
-        if (rec && rec->getStudentId() == studentId) {
+    UniversitySystem& sys = UniversitySystem::getInstance();  //create an instance of the app
+
+    // the card carries a UID like CARD_S001, so turn it into a student ID
+    string studentId = sys.resolveUidToStudentId(event.getUid());
+
+    // the student must be enrolled in the course this session belongs to
+    bool enrolled = false; //initialised to false
+    vector<Enrolment*> theirEnrolments = sys.getEnrolmentsForStudent(studentId);// the universitysystem class object sys is used to get the enrollment data
+    for (int i = 0; i < (int)theirEnrolments.size(); i++) {  //from all their enrollemnt data we check if this course is available
+        if (theirEnrolments[i]->getCourseId() == session->getCourseId()) {
+            enrolled = true;
+        }
+    }
+    if (!enrolled) {
+        throw NotEnrolledException();
+    }
+
+    // check if they have already tapped by comparing the exitingg record
+    const vector<AttendanceRecord*>& records = session->getRecords();
+    for (int i = 0; i < (int)records.size(); i++) {
+        if (records[i] != nullptr && records[i]->getStudentId() == studentId) {
             throw DuplicateAttendanceException();
         }
     }
 
-    session->markPresent(studentId, capturedBy);
+    session->markPresent(studentId, "CardTap");
 }
-
-// card tap: the UID on the card is already the student ID
-void AttendanceRegister::processEvent(CaptureEvent event) {
-    recordTap(event.getUid(), "CardTap");
-}
-
-// console tap: the caller supplies the UID lookup and the enrolment check,
-// because the register does not know about students or courses
-void AttendanceRegister::processEvent(CaptureEvent event,
-                                      const function<string(const string&)>& uidToStudentId,
-                                      const function<bool(const string&, const string&)>& isStudentEnrolled) {
-    AttendanceSession* session = getActiveSession();
-    if (!session) {
-        throw SessionClosedException();
-    }
-
-    string rawUid = event.getUid();
-    string studentId = uidToStudentId ? uidToStudentId(rawUid) : rawUid;
-
-    if (isStudentEnrolled && !isStudentEnrolled(studentId, session->getCourseId())) {
-        throw NotEnrolledException();
-    }
-
-    recordTap(studentId, "ConsoleTap");
-}
-
+//count number of sessions per course
 int AttendanceRegister::countSessionsFor(const string& courseId) const {
     int total = 0;
-    for (const AttendanceSession& sess : sessions) {
-        if (sess.getCourseId() == courseId) {
+    for (int i = 0; i < (int)sessions.size(); i++) {
+        if (sessions[i].getCourseId() == courseId) {
             total++;
         }
     }
@@ -101,14 +107,15 @@ double AttendanceRegister::attendancePercent(string studentId, string courseId) 
     }
 
     int attended = 0;
-    for (const AttendanceSession& sess : sessions) {
-        if (sess.getCourseId() != courseId) {
-            continue;
+    for (int i = 0; i < (int)sessions.size(); i++) {
+        if (sessions[i].getCourseId() != courseId) {
+            continue; //skip the loop entirely
         }
-        for (AttendanceRecord* rec : sess.getRecords()) {
-            if (rec && rec->getStudentId() == studentId) {
+        const vector<AttendanceRecord*>& records = sessions[i].getRecords();
+        for (int j = 0; j < (int)records.size(); j++) {
+            if (records[j] != nullptr && records[j]->getStudentId() == studentId) {
                 attended++;
-                break;
+                break; //if not null and matches student id add one to attendance andstop the loop.
             }
         }
     }
@@ -119,53 +126,58 @@ double AttendanceRegister::attendancePercent(string studentId, string courseId) 
 void AttendanceRegister::courseAttendanceReport(string courseId) const {
     int totalSessions = countSessionsFor(courseId);
 
-    cout << "\n========================================================\n";
     cout << "         ATTENDANCE REPORT FOR COURSE: " << courseId << "\n";
-    cout << "========================================================\n";
     cout << " Total Sessions Held: " << totalSessions << "\n";
 
     if (totalSessions == 0) {
         cout << " No attendance sessions recorded for this course yet.\n";
-        cout << "========================================================\n\n";
         return;
     }
 
     cout << "\n Sessions breakdown:\n";
-    for (const AttendanceSession& sess : sessions) {
-        if (sess.getCourseId() != courseId) {
-            continue;
+    for (int i = 0; i < (int)sessions.size(); i++) {
+        if (sessions[i].getCourseId() != courseId) {
+            continue; //skip this step
         }
-        cout << "  - Session: " << sess.getId() << " (Opened: " << sess.getOpenedAt()
-             << ", Status: " << (sess.getIsOpen() ? "OPEN" : "CLOSED") << ")\n";
-        cout << "    Attendees (" << sess.getRecords().size() << "):\n";
-        for (AttendanceRecord* rec : sess.getRecords()) {
-            if (rec) {
-                cout << "      * " << *rec << "\n";
+
+        string state = "CLOSED";
+        if (sessions[i].getIsOpen()) {
+            state = "OPEN";
+        }
+
+        const vector<AttendanceRecord*>& records = sessions[i].getRecords();
+        cout << "  - Session: " << sessions[i].getId()
+             << " (Opened: " << sessions[i].getOpenedAt() << ", Status: " << state << ")\n";
+        cout << "    Attendees (" << records.size() << "):\n";
+
+        for (int j = 0; j < (int)records.size(); j++) {
+            if (records[j] != nullptr) {
+                cout << "      * " << *records[j] << "\n";
             }
         }
     }
-    cout << "========================================================\n\n";
-}
 
-// same report, but one row per enrolled student with the 80% eligibility rule
-void AttendanceRegister::courseAttendanceReport(string courseId, const vector<string>& enrolledStudents) const {
-    int totalSessions = countSessionsFor(courseId);
+    // part 2: every enrolled student, including the ones who never turned up.
+    // the roll comes from Course, because the register only knows who tapped.
+    Course* course = UniversitySystem::getInstance().findCourse(courseId);
+    if (course == nullptr) {
+        cout << "========================================================\n\n";
+        return;
+    }
+    vector<string> enrolledStudents = course->getEnrolledIds();
 
-    cout << "\n========================================================\n";
-    cout << "       DETAILED ATTENDANCE REPORT: " << courseId << "\n";
-    cout << "========================================================\n";
-    cout << " Total Sessions Held: " << totalSessions << "\n";
+    cout << "\n Student summary:\n";
     cout << " Enrolled Students:   " << enrolledStudents.size() << "\n";
     cout << "--------------------------------------------------------\n";
     cout << left << setw(15) << "Student ID" << setw(20) << "Attendance %" << "Status\n";
     cout << "--------------------------------------------------------\n";
 
     double totalPct = 0;
-    for (const string& stuId : enrolledStudents) {
-        double pct = attendancePercent(stuId, courseId);
-        totalPct += pct;
+    for (int i = 0; i < (int)enrolledStudents.size(); i++) {
+        double pct = attendancePercent(enrolledStudents[i], courseId);
+        totalPct = totalPct + pct;
 
-        cout << left << setw(15) << stuId << setw(18) << (to_string((int)pct) + "%");
+        cout << left << setw(15) << enrolledStudents[i] << setw(18) << (to_string((int)pct) + "%");
         if (pct < 80.0 && totalSessions > 0) {
             cout << " [!] Ineligible (<80% threshold)\n";
         } else {
@@ -173,10 +185,10 @@ void AttendanceRegister::courseAttendanceReport(string courseId, const vector<st
         }
     }
 
-    if (!enrolledStudents.empty()) {
+    if (enrolledStudents.size() > 0) {
+        double average = totalPct / enrolledStudents.size();
         cout << "--------------------------------------------------------\n";
-        cout << " Overall Course Attendance Average: "
-             << fixed << setprecision(1) << (totalPct / enrolledStudents.size()) << "%\n";
+        cout << " Overall Course Attendance Average: " << fixed << setprecision(1) << average << "%\n";
     }
     cout << "========================================================\n\n";
 }
@@ -188,18 +200,27 @@ void AttendanceRegister::save(const string& path) const {
         throw PersistenceException("Error: Could not save attendance file: " + path);
     }
 
-    for (const AttendanceSession& sess : sessions) {
-        file << "SESSION," << sess.toLine() << "\n";
-        for (AttendanceRecord* rec : sess.getRecords()) {
-            if (rec) {
-                file << rec->toLine() << "\n";
+    for (int i = 0; i < (int)sessions.size(); i++) {
+        file << "SESSION," << sessions[i].toLine() << "\n";
+
+        const vector<AttendanceRecord*>& records = sessions[i].getRecords(); //using the saving template
+        for (int j = 0; j < (int)records.size(); j++) {
+            if (records[j] != nullptr) {
+                file << records[j]->toLine() << "\n";
             }
         }
     }
     file.close();
 }
 
-void AttendanceRegister::load(const string& path) {
+//check if there's anythign to load
+//check if it's a new session that has to be loaded if so create new session
+//check if it's a data like aa record or a correction record if so
+//use dynamic cast to differ between normal and correction record loading
+//if correction create aa correction record else markpresnt
+
+
+void AttendanceRegister::load(const string& path) { 
     ifstream file(path);
     if (!file.is_open()) {
         return;   // no file yet, nothing to load
@@ -212,40 +233,41 @@ void AttendanceRegister::load(const string& path) {
             continue;
         }
 
-        if (line.rfind("SESSION,", 0) == 0) {
-            AttendanceSession* sess = AttendanceSession::fromLine(line.substr(8));
-            if (sess) {
-                sessions.push_back(*sess);
-                delete sess;
+        // a SESSION line starts a new session
+        if (line.substr(0, 8) == "SESSION,") { //if the substring is SESSION create a new object
+            AttendanceSession* session = AttendanceSession::fromLine(line.substr(8));
+            if (session != nullptr) {
+                sessions.push_back(*session);
+                delete session; //push to the stack and delete the pointer
             }
             continue;
         }
 
-        bool isRecord = (line.rfind("RECORD,", 0) == 0 || line.rfind("CORRECTION,", 0) == 0);
-        if (!isRecord || sessions.empty()) {
+        bool isRecord = (line.substr(0, 7) == "RECORD," || line.substr(0, 11) == "CORRECTION,");
+        if (!isRecord || sessions.size() == 0) {
             continue;
         }
 
-        AttendanceRecord* rec = AttendanceRecord::fromLine(line);
-        if (!rec) {
+        AttendanceRecord* record = AttendanceRecord::fromLine(line);
+        if (record == nullptr) {
             continue;
         }
 
         // put the record back on its own session, or the newest one if the ID is unknown
-        AttendanceSession* target = findSessionById(rec->getSessionId());
-        if (!target) {
+        AttendanceSession* target = findSessionById(record->getSessionId());
+        if (target == nullptr) {
             target = &sessions.back();
         }
 
-        // notify = false: this is a reload, not a live tap, so stay quiet
-        CorrectionRecord* correction = dynamic_cast<CorrectionRecord*>(rec);
-        if (correction) {
+        // notify = false, because this is a reload and not a live tap
+        CorrectionRecord* correction = dynamic_cast<CorrectionRecord*>(record);
+        if (correction != nullptr) {
             target->appendCorrection(correction->getStudentId(), correction->getActingLecturerId(),
                                      correction->getReason(), false);
         } else {
-            target->markPresent(rec->getStudentId(), rec->getCapturedBy(), false);
+            target->markPresent(record->getStudentId(), record->getCapturedBy(), false);
         }
-        delete rec;
+        delete record;
     }
     file.close();
 }

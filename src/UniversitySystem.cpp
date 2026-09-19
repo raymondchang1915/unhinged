@@ -54,26 +54,14 @@ Student* UniversitySystem::findStudent(const string& id){//turns the generic Per
     return dynamic_cast<Student*>(users.findById(id));
 }
 
-Lecturer* UniversitySystem::findLecturer(const string& id){
-    return dynamic_cast<Lecturer*>(users.findById(id));
-}
-
 Course* UniversitySystem::findCourse(const string& code){
     return courses.findById(code);
 }
-
+//basically a for loop to get enrollment list for specfic studentid
 vector<Enrolment*> UniversitySystem::getEnrolmentsForStudent(const string& studentId){//return a vector full of pointers to enrollments
     vector<Enrolment*> res;//creates an empty list called res at first
     for (Enrolment* e:enrolments.all()) {//e-current enrollment
         if (e && e->getStudentId() == studentId) res.push_back(e);//Does the student ID on records match the student condition if so put in res(double checking data)
-    }
-    return res;
-}
-
-vector<Enrolment*> UniversitySystem::getEnrolmentsForCourse(const string& courseCode){//return a vector full of pointers to enrollments
-    vector<Enrolment*> res;
-    for (Enrolment* e : enrolments.all()){
-        if (e && e->getCourseId() == courseCode) res.push_back(e);//double check data and if correct put in res
     }
     return res;
 }
