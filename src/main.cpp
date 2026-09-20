@@ -47,6 +47,7 @@ public:
 //checks if it's a student , lect or admin and if any of them are then
 //show the specific menu to them
 //then each spcific menu handle the rest
+//even if a stundet log out the lecture can still stay logged in becuase of the main loop in run()
     void handleException(const SystemException& e){
         cout<<"\n========================================================\n";
         cout<<" SYSTEM ALERT: \n";
