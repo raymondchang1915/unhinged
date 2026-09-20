@@ -60,5 +60,6 @@ Person* Person::fromLine(string line) {
         return new Administrator(id, name, password);
     }
 
-    throw CorruptDataException("users.txt", 0);
+    return nullptr;   // Repository::load turns this into a CorruptDataException
+                      // that names the real line number
 }

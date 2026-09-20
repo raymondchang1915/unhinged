@@ -15,7 +15,7 @@ using namespace std;
 
 UniversitySystem* UniversitySystem::instance =nullptr;//At start of the program sets the shared instance pointer to empty
 
-UniversitySystem::UniversitySystem() : dataDir("data"){}//constructor
+UniversitySystem::UniversitySystem() : dataDir("data"), dataLoadFailed(false){}//constructor
 
 UniversitySystem& UniversitySystem::getInstance(){//reference used because no need to copy
     if (!instance) {
@@ -32,7 +32,11 @@ void UniversitySystem::initialize(const string& dir){
         // Files do not exist yet; save empty repositories to create clean starter files
         saveAll();
     } catch (const SystemException& e){
+        // a corrupt file: report it and refuse to save, so the rest of the
+        // data on disk is not overwritten by what little was loaded
+        dataLoadFailed = true;
         cout<< "[System Alert] "<<e.what()<<endl;
+        cout<< "[System Alert] Saving is disabled until that line is fixed."<<endl;
     }
     rebuildStudentTimetables();//all loaded enrolments and others figures out which student is in which course, and builds their weekly calendar schedules
 }
@@ -45,6 +49,10 @@ void UniversitySystem::loadAll(){//load to RAM
 }
 //already the objects exist in the memory so they are turned into strings and saved
 void UniversitySystem::saveAll(){
+    if (dataLoadFailed) {
+        cout<< "[System Alert] Not saving: the data files were not fully loaded."<<endl;
+        return;
+    }
     users.save(dataDir + "/users.txt");
     courses.save(dataDir + "/courses.txt");
     enrolments.save(dataDir + "/enrolments.txt");

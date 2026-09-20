@@ -23,6 +23,10 @@ private:
     AttendanceRegister attendance;
 
     static UniversitySystem* instance; //pointer shared by whole system
+
+    // set when a data file could not be read; saving is then refused so a
+    // half loaded system can never overwrite the good files on disk
+    bool dataLoadFailed;
     UniversitySystem();//no outside can create another new university system
 
 public:

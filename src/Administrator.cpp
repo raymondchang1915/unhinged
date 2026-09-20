@@ -11,6 +11,22 @@
 
 #include <iostream>
 
+// Reads one whole number. If the user types something that is not a number,
+// cin goes into a fail state and every later read is skipped, which used to
+// save a course with empty fields. Clearing the stream and throwing stops that.
+// A plain file level function, not a member, so no class gains a new method.
+static int readNumber(const string& prompt) {
+    cout << prompt;
+    int value = 0;
+    if (!(cin >> value)) {
+        cin.clear();
+        string junk;
+        getline(cin, junk);
+        throw SystemException("That field needs a whole number.");
+    }
+    return value;
+}
+
 Administrator::Administrator(string i, string h, string p) : Person(i, h, p) {
 }
 
@@ -134,10 +150,8 @@ void Administrator::createCourse() {
     cout << "Title: ";
     cin >> ws;
     getline(cin, title);
-    cout << "Credits: ";
-    cin >> credits;
-    cout << "Capacity: ";
-    cin >> capacity;
+    credits = readNumber("Credits: ");
+    capacity = readNumber("Capacity: ");
     cout << "Lecturer ID: ";
     cin >> lectId;
 
@@ -153,8 +167,7 @@ void Administrator::createCourse() {
         course = new LectureCourse(code, title, credits, capacity, lectId);
     } else if (type == "LAB") {
         int labHours = 0;
-        cout << "Lab hours per week: ";
-        cin >> labHours;
+        labHours = readNumber("Lab hours per week: ");
         course = new LabCourse(code, title, credits, capacity, lectId, labHours);
     } else if (type == "PROJ") {
         string passFail;
@@ -170,12 +183,9 @@ void Administrator::createCourse() {
     int startMin = 540;
     int endMin = 660;
     string location;
-    cout << "Day (0=Sun, 1=Mon ... 6=Sat): ";
-    cin >> day;
-    cout << "Start time in minutes from midnight (540 = 09:00): ";
-    cin >> startMin;
-    cout << "End time in minutes from midnight (660 = 11:00): ";
-    cin >> endMin;
+    day = readNumber("Day (0=Sun, 1=Mon ... 6=Sat): ");
+    startMin = readNumber("Start time in minutes from midnight (540 = 09:00): ");
+    endMin = readNumber("End time in minutes from midnight (660 = 11:00): ");
     cout << "Location: ";
     cin >> ws;
     getline(cin, location);
@@ -208,8 +218,7 @@ void Administrator::editCourse(string courseCode) {
     cout << "New title: ";
     cin >> ws;
     getline(cin, title);
-    cout << "New capacity: ";
-    cin >> capacity;
+    capacity = readNumber("New capacity: ");
     cout << "New lecturer ID: ";
     cin >> lectId;
 

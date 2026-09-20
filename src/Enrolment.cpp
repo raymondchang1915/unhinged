@@ -58,7 +58,7 @@ Enrolment* Enrolment::fromLine(string line) {
     getline(ss, date);
 
     if (id == "" || studentId == "" || courseId == "") {
-        throw CorruptDataException("enrolments.txt", 0);
+        return nullptr;   // Repository::load reports the real line number
     }
 
     // keep the counter ahead of every ID already on disk, so new enrolments never collide

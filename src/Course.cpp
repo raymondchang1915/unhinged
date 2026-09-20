@@ -117,7 +117,7 @@ Course* Course::fromLine(string line) {
     getline(ss, slotStr);
 
     if (code == "" || creditStr == "" || capStr == "") {
-        throw CorruptDataException("courses.txt", 0);
+        return nullptr;   // Repository::load reports the real line number
     }
 
     int credits = stoi(creditStr);
@@ -132,7 +132,7 @@ Course* Course::fromLine(string line) {
     } else if (tag == "PROJ") {
         c = new ProjectCourse(code, title, credits, capacity, lectId, extra == "1");
     } else {
-        throw CorruptDataException("courses.txt", 0);
+        return nullptr;   // Repository::load reports the real line number
     }
 
     if (prereqStr != "" && prereqStr != "NONE") {
