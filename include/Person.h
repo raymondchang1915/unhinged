@@ -10,6 +10,12 @@ private:
     string name;
     string password;
 
+protected:
+    // protected, not public: only the subclasses' own toLine() may read the
+    // password, so it can be written to users.txt. Nothing outside the
+    // hierarchy can ever get at it.
+    string getPassword() const;
+
 public:
 //since the compiler oly looks at the type here
     Person(string , string , string );
@@ -17,7 +23,6 @@ public:
 
     string getId() const;
     string getName() const;
-    string getPassword() const;   // needed by toLine() so the password survives a save/load
     bool login(string pw) const;
 //virtual function and equallling it to 0 makes this an abstract class
     virtual void showDashboard() = 0;   // each role draws its own menu
