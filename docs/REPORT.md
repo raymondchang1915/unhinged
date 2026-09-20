@@ -266,6 +266,67 @@ lecturer while keeping its prerequisite and time slot; editing `S003` changed na
 password while keeping the card UID and completed courses, and the new password worked on
 the next login.
 
+### 5.6 Additional scenarios
+
+Beyond the required cases, the following were also run:
+
+| Scenario | Result |
+|---|---|
+| First run with no `data/` folder at all | Folder and four empty files created through the `FileNotFoundException` path; no crash |
+| Course capacity | A capacity-1 course was created, a second student refused with `Course TINY1 is full. Maximum capacity is 1.` |
+| Credit rules across all three course types | `LectureCourse` 3, `LabCourse` 2 + 4/3 = 3, `ProjectCourse` 4, and a pass/fail project 0 — the same `calculateCredits()` call through a `Course*` giving four different answers |
+| Session lifecycle | Open → tap → close → reopen → tap; session IDs incremented `_SESS_1`, `_SESS_2`, and the closed session refused further taps |
+| Prerequisite satisfied by current enrolment | `S003` enrolled in `CS102` and was then allowed into `CS103`, which requires it — a prerequisite counts as met if it is completed **or** in progress |
+| Drop a course the student is not in | Refused, nothing written |
+| Admin validation | Duplicate user ID, unknown role and editing a non-existent course code all refused with a message and no change written |
+
+### 5.7 Defects found by testing, and the fixes
+
+Testing was not only confirmation. Three defects were found and fixed, which is the main
+argument for having run the sweep at all.
+
+**1. Data loss on a corrupt data file (serious).**
+A single unparseable line in `courses.txt` made `loadAll()` throw part way through, so
+`enrolments.txt` and `attendance.txt` were never loaded. The save on exit then wrote both
+files out **empty**, destroying every enrolment and attendance record. Reproduced by
+appending one junk line to `courses.txt`.
+
+*Fix:* `UniversitySystem` records the failure and `saveAll()` refuses to write:
+
+```
+[System Alert] Error: Corrupt data found in file data/courses.txt at line 6.
+[System Alert] Saving is disabled until that line is fixed.
+[System Alert] Not saving: the data files were not fully loaded.
+```
+
+After the fix, the same test left all three enrolment records untouched. The principle:
+a program that cannot read its data must not be allowed to write it.
+
+**2. Corrupt-line errors always reported line 0.**
+`Person::fromLine`, `Course::fromLine` and `Enrolment::fromLine` each threw
+`CorruptDataException(file, 0)`, so the message never told you which line was broken.
+
+*Fix:* the factories now return `nullptr` on a bad line. `Repository<T>::load` already
+counts lines, so it raises the exception itself with the true line number — which is how
+the message above says "line 6". This also removed three duplicate throw sites.
+
+**3. Non-numeric input silently produced a corrupt record.**
+Typing letters at a numeric prompt (for example `abc` for credits) put `cin` into a fail
+state. Every later read was skipped without complaint, and the course was still created
+and saved:
+
+```
+LEC,BAD1,Bad Course,0,0,,0,,1;540;660;      <- 0 credits, 0 capacity, no lecturer, no room
+```
+
+*Fix:* the seven numeric prompts in `Administrator` now go through one file-level
+`readNumber()` that clears the stream and throws `That field needs a whole number.`
+The record is not created. The menu's own `readChoice()` already handled this correctly;
+only the admin data-entry prompts were exposed.
+
+All three fixes were verified by re-running the tests that exposed them, followed by the
+full regression above.
+
 ---
 
 ## 6. Individual contribution table
@@ -311,8 +372,9 @@ the next login.
    `delete`. The memory is reclaimed when the program exits, so nothing leaks while
    running, but it is not symmetric.
 
-8. **No input validation on numeric menu entries beyond type.** A capacity of `-5` is
-   accepted when creating a course.
+8. **Numeric fields are checked for type but not for range.** Non-numeric input is now
+   rejected (Section 5.7), but a capacity of `-5` or a start time of `9999` minutes is
+   still accepted when creating a course.
 
 9. **Single user, single session.** There is no concurrency handling; the files are
    rewritten wholesale on every save.
