@@ -11,7 +11,7 @@ abstract class Person {
   - password : string
   + getId() : string {query}
   + getName() : string {query}
-  + getPassword() : string {query}
+  # getPassword() : string {query}
   + login(pw : string) : bool {query}
   + {static} fromLine(line : string) : Person*
   + {abstract} showDashboard() : void
