@@ -18,9 +18,10 @@ UniversitySystem* UniversitySystem::instance =nullptr;//At start of the program 
 UniversitySystem::UniversitySystem() : dataDir("data"){}//constructor
 
 UniversitySystem& UniversitySystem::getInstance(){//reference used because no need to copy
-    if (!instance) instance = new UniversitySystem();//if the university system is empty create a one otherwise jsut return the isntance
+    if (!instance) {
+    instance = new UniversitySystem();}//if the university system is empty create a one otherwise jsut return the isntance
     return *instance;
-}
+}//loading data seperately to avoid errors in constructor
 void UniversitySystem::initialize(const string& dir){
     dataDir=dir;//saves the data in the private directory
     std::filesystem::create_directories(dataDir); 

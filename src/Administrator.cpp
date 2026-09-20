@@ -37,7 +37,7 @@ void Administrator::createUser() {
     cin >> id;
     cout << "Full name: ";
     cin >> ws;              // drop the leftover newline
-    getline(cin, name);     // getline so the name can have spaces
+    getline(cin, name);     // getline used so the name can have spaces
     cout << "Password: ";
     cin >> password;
 
@@ -69,29 +69,30 @@ void Administrator::createUser() {
 void Administrator::updateUser(string userId) {
     UniversitySystem& sys = UniversitySystem::getInstance();
 
-    Person* user = sys.getUsers().findById(userId);
+    Person* user = sys.getUsers().findById(userId); //check if user exist
     if (user == nullptr) {
         throw UserNotFoundException(userId);
     }
-
+//get the new username and password
     string name, password;
     cout << "New full name: ";
     cin >> ws;
     getline(cin, name);
     cout << "New password: ";
     cin >> password;
-
+//remove any commas
     if (name.find(',') != string::npos) {
-        throw SystemException("Name cannot contain a comma, it would break users.txt.");
+        throw SystemException("Name cannot contain a commas");
     }
-
+//check if the user is student or lecturer
     Person* updated = nullptr;
     Student* student = dynamic_cast<Student*>(user);
     Lecturer* lecturer = dynamic_cast<Lecturer*>(user);
-
+//if student
     if (student != nullptr) {
         // the card and the completed courses have to carry across
         Student* newStudent = new Student(userId, name, password, student->getCard().getUid());
+        //create new student objet and run a loop to get all the completed courses from the old object
         vector<string> completed = student->getCompletedCourses();
         for (int i = 0; i < (int)completed.size(); i++) {
             newStudent->addCompletedCourse(completed[i]);
@@ -103,7 +104,7 @@ void Administrator::updateUser(string userId) {
         updated = new Administrator(userId, name, password);
     }
 
-    sys.getUsers().add(userId, updated);   // deletes the old object, stores the new one
+    sys.getUsers().add(userId, updated);   // deletes the old object, stores the new one using the repository technique of add
     sys.rebuildStudentTimetables();        // the replacement student starts with an empty timetable
     sys.saveAll();
     cout << "[Success] Updated user " << userId << "\n";
@@ -111,10 +112,10 @@ void Administrator::updateUser(string userId) {
 
 void Administrator::removeUser(string userId) {
     UniversitySystem& sys = UniversitySystem::getInstance();
-    if (!sys.getUsers().findById(userId)) {
+    if (!sys.getUsers().findById(userId)) { //check if user exist
         throw UserNotFoundException(userId);
     }
-    sys.getUsers().remove(userId);
+    sys.getUsers().remove(userId); //use repo power
     sys.saveAll();
     cout << "[Success] Removed user " << userId << "\n";
 }
@@ -144,7 +145,7 @@ void Administrator::createCourse() {
         throw SystemException("A course with code " + code + " already exists.");
     }
     if (title.find(',') != string::npos) {
-        throw SystemException("Title cannot contain a comma, it would break courses.txt.");
+        throw SystemException("Title cannot contain a commas");
     }
 
     Course* course = nullptr;
