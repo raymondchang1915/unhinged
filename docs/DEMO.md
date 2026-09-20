@@ -13,9 +13,13 @@ It is individual, so each member runs the whole thing. **Reset the data between 
 
 ```powershell
 cd C:\Users\ASUS\unhinged
-git checkout data/          # clean starting data
+.\reset-demo.ps1            # restores data/ from data_baseline/
 mingw32-make                # should print one g++ line, no errors
 ```
+
+If PowerShell blocks the script ("running scripts is disabled"), either run
+`powershell -ExecutionPolicy Bypass -File .\reset-demo.ps1`, or copy by hand:
+`Copy-Item data_baseline\*.txt data\ -Force`
 
 Open a **second** PowerShell in the same folder for showing the files later.
 
@@ -164,7 +168,7 @@ Say: *"Testing found this one. A corrupt line used to stop the load half way, an
 on exit wrote the unloaded files out empty. Now a program that can't read its data isn't
 allowed to write it."*
 
-Clean up: `git checkout data/`
+Clean up: `.\reset-demo.ps1`
 
 ---
 
@@ -229,8 +233,11 @@ nine exception paths, and three defects that testing found and we fixed.
 
 ```powershell
 cd C:\Users\ASUS\unhinged
-git checkout data/
+.\reset-demo.ps1
 ```
+
+`data_baseline/` holds the pristine copy and the program never writes to it, so you can
+reset as many times as you like - no git and no network needed.
 
 Run that before every demo. Without it the second person starts with the first person's
 enrolments and attendance, and the numbers won't match this script.
