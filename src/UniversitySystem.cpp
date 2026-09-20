@@ -53,14 +53,14 @@ void UniversitySystem::saveAll(){
         cout<< "[System Alert] Not saving: the data files were not fully loaded."<<endl;
         return;
     }
-    users.save(dataDir + "/users.txt");
+    users.save(dataDir + "/users.txt");  //users/courses/enrolments object of type Repository<Person>/<course> /<enrolments>
     courses.save(dataDir + "/courses.txt");
     enrolments.save(dataDir + "/enrolments.txt");
-    attendance.save(dataDir + "/attendance.txt");
+    attendance.save(dataDir + "/attendance.txt");//attendance-object of attendance register
 }
 
 Student* UniversitySystem::findStudent(const string& id){//turns the generic Person* into a Student* and hands it back
-    return dynamic_cast<Student*>(users.findById(id));
+    return dynamic_cast<Student*>(users.findById(id));//run time type information RTTI
 }
 
 Course* UniversitySystem::findCourse(const string& code){

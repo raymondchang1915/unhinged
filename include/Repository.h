@@ -13,7 +13,7 @@ using namespace std;
 template <typename T>
 class Repository {
 private:
-    std::map<string, T*> items;
+    std::map<string, T*> items; //necessary ones are created when T becomes the relevant class in universitysytem
 
 public:
     Repository() {}
@@ -33,19 +33,19 @@ public:
         }
     }
 
-    // --- REMOVE AN ITEM ---
-    bool remove(std::string id) {
+    //remove an item
+    bool remove(std::string id) {//tells admin dashboard true/false
         auto it = items.find(id);//auto guesses the variable type
         if (it != items.end()) {
-            delete it->second;
-            items.erase(it);
+            delete it->second;//second values of the map which is the pointer (first being the ID) clears the heap
+            items.erase(it);//clears the record from the map
             return true;
         }
         return false;
     }
 
     //find an item
-    T* findById(std::string id) {
+    T* findById(std::string id) {//returns a pointer so it can return null if nothing is found otherwise dummy values would be returned
         // If the item exists return it
         if (items.find(id) != items.end()) {
             return items[id];
