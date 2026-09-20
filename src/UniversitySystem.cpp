@@ -52,7 +52,7 @@ void UniversitySystem::saveAll(){
 }
 
 Student* UniversitySystem::findStudent(const string& id){//turns the generic Person* into a Student* and hands it back
-    return dynamic_cast<Student*>(users.findById(id));
+    return dynamic_cast<Student*>(users.findById(id));//run time type information RTTI
 }
 
 Course* UniversitySystem::findCourse(const string& code){
