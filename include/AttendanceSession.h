@@ -10,6 +10,7 @@
 using namespace std;
 
 // one class meeting that students tap into
+//there are multiple attendace records per one session and this is unqiue upto a course ID and a time slot
 class AttendanceSession {
 private:
     static int defaultDurationMin;   // shared by every session: 10 minutes
@@ -27,7 +28,7 @@ private:
 public:
     AttendanceSession(string sessId, string courseId, TimeSlot slot, string timeOpened, int duration = 10);
 
-    // rule of 5: the records are owned pointers, so copying needs deep copies
+    // rule of 5: the records are pointers, so copying needs deep copies
     AttendanceSession(const AttendanceSession& other);
     AttendanceSession& operator=(const AttendanceSession& other);
     AttendanceSession(AttendanceSession&& other) noexcept;

@@ -3,7 +3,7 @@
 #include <iostream>
 using namespace std;
 
-// there is no physical reader, so a typed UID stands in for a tapped card
+// the actual implementation 
 
 void ConsoleCardReader::beginSession() {
     cout << "========================================\n";

@@ -9,11 +9,11 @@
 #include <string>
 #include <vector>
 using namespace std;
-
+//This has multiple attendance sessions that means multiple classes with a lot of students with unque UID and unque session ID.
 // owns every attendance session and turns card taps into records
 class AttendanceRegister {
 private:
-    vector<AttendanceSession> sessions;
+    vector<AttendanceSession> sessions; //a list of sessions is a register and each session is a list of records- each record is either correction or normal
 
     int countSessionsFor(const string& courseId) const;   // shared by both reports
 
