@@ -45,10 +45,10 @@ void UniversitySystem::loadAll(){//load to RAM
 }
 //already the objects exist in the memory so they are turned into strings and saved
 void UniversitySystem::saveAll(){
-    users.save(dataDir + "/users.txt");
+    users.save(dataDir + "/users.txt");  //users/courses/enrolments object of type Repository<Person>/<course> /<enrolments>
     courses.save(dataDir + "/courses.txt");
     enrolments.save(dataDir + "/enrolments.txt");
-    attendance.save(dataDir + "/attendance.txt");
+    attendance.save(dataDir + "/attendance.txt");//attendance-object of attendance register
 }
 
 Student* UniversitySystem::findStudent(const string& id){//turns the generic Person* into a Student* and hands it back
