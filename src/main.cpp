@@ -116,12 +116,7 @@ public:
             try {
                 string courseCode, sessionId;
                 if (choice == 1){
-                    cout<<"\n--- My Courses ---\n";
-                    for (Course* c : sys.getCourses().all()){
-                        if (c->getAssignedLectId() == lecturer->getId()){
-                            cout<<"  " << *c << "\n";
-                        }
-                    }
+                    lecturer->listMyCourses();
                 } else if (choice == 2){
                     if (!readWord("Enter course code: ", courseCode)) return;
                     lecturer->viewEnrolmentList(courseCode);
@@ -209,8 +204,8 @@ public:
                         cout<<"Invalid choice. Please enter a, b or c.\n";
                     }
                 } else if (choice == 2){
-                    cout<<"  a. Add a course\n  b. Edit a course\n  c. Remove a course\n";
-                    if (!readWord("Choose (a/b/c): ", action)) return;
+                    cout<<"  a. Add a course\n  b. Edit a course\n  c. Remove a course\n  d. List all courses\n";
+                    if (!readWord("Choose (a/b/c/d): ", action)) return;
                     if (action == "a"){
                         admin->createCourse();
                     } else if (action == "b"){
@@ -219,8 +214,10 @@ public:
                     } else if (action == "c"){
                         if (!readWord("Enter course code to remove: ", id)) return;
                         admin->removeCourse(id);
+                    } else if (action == "d"){
+                        admin->listAllCourses();
                     } else {
-                        cout<<"Invalid choice. Please enter a, b or c.\n";
+                        cout<<"Invalid choice. Please enter a, b, c or d.\n";
                     }
                 } else if (choice == 3){
                     admin->generateEnrolmentReport();

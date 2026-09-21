@@ -13,6 +13,7 @@ public:
     ~Lecturer();
 
     void showDashboard() override;
+    void listMyCourses();   // only the courses assigned to this lecturer
     void openSession(string courseId, const TimeSlot& slot, int durationMin);
     void closeSession(string sessionId);
     void viewEnrolmentList(string courseId);

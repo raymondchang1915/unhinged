@@ -10,6 +10,7 @@
 #include "Exceptions.h"
 
 #include <iostream>
+#include <iomanip>
 
 // Reads one whole number. If the user types something that is not a number,
 // cin goes into a fail state and every later read is skipped, which used to
@@ -46,7 +47,7 @@ void Administrator::createUser() {
     UniversitySystem& sys = UniversitySystem::getInstance();
 
     string role, id, name, password;
-
+//the data is taken here
     cout << "Role (Student / Lecturer / Admin): ";
     cin >> role;
     cout << "User ID: ";
@@ -63,7 +64,7 @@ void Administrator::createUser() {
     if (name.find(',') != string::npos) {
         throw SystemException("Name cannot contain a comma, it would break users.txt.");
     }
-
+//from the data that was took the object is created here
     Person* user = nullptr;
     if (role == "Student") {
         user = new Student(id, name, password, "CARD_" + id);
@@ -265,7 +266,71 @@ void Administrator::removeCourse(string courseCode) {
     cout << "[Success] Removed course " << courseCode << "\n";
 }
 
-// FR6.1: every course with its roll, using Course's operator<<
+// FR6.1: a plain list of every course held by the system, admin's view, so it
+// shows the lecturer and the seats as well. Uses getCourses() and walks the
+// whole repository, which is why the admin sees courses that belong to nobody.
+void Administrator::listAllCourses() {
+    UniversitySystem& sys = UniversitySystem::getInstance();
+    vector<Course*> courses = sys.getCourses().all();
+
+    cout << "\n--- All Courses (" << courses.size() << ") ---\n";
+    if (courses.empty()) {
+        cout << "  (no courses in the system)\n";
+        return;
+    }
+
+    for (int i = 0; i < (int)courses.size(); i++) {
+        Course* c = courses[i];
+        Person* lect = sys.getUsers().findById(c->getAssignedLectId());
+
+        // operator<< prints the code, the title and the polymorphic credit value
+        cout << "  " << (i + 1) << ". " << *c << "\n";
+        cout << "      Lecturer: " << c->getAssignedLectId();
+        if (lect != nullptr) {
+            cout << " (" << lect->getName() << ")";
+        }
+        cout << " | Seats: " << c->getEnrolledIds().size() << "/" << c->getCapacity() << "\n";
+    }
+}
+
+// One course's roll: every enrolled student with the attendance percentage the
+// register works out for them. The course average is returned so the enrolment
+// report can print it, and it is kept out of generateEnrolmentReport so the
+// loop over the courses stays readable.
+double Administrator::reportCourseAttendance(Course* course) {
+    if (course == nullptr) {
+        throw SystemException("No course given to the attendance summary.");
+    }
+
+    UniversitySystem& sys = UniversitySystem::getInstance();
+    vector<string> enrolled = course->getEnrolledIds();
+
+    if (enrolled.empty()) {
+        cout << "  (nobody enrolled)\n";
+        return 0.0;
+    }
+
+    double totalPct = 0.0;
+    for (int i = 0; i < (int)enrolled.size(); i++) {
+        Person* p = sys.getUsers().findById(enrolled[i]);
+        // the register owns the sessions, so it is the one that works out the percentage
+        double pct = sys.getAttendance().attendancePercent(enrolled[i], course->getId());
+        totalPct = totalPct + pct;
+
+        cout << "  - " << left << setw(10) << enrolled[i]
+             << setw(26) << (p != nullptr ? p->getName() : string("(unknown user)"))
+             << "  " << right << fixed << setprecision(1) << setw(6) << pct << "%";
+        if (pct < 80.0) {
+            cout << "  [!] below the 80% threshold";
+        }
+        cout << "\n";
+    }
+
+    return totalPct / enrolled.size();
+}
+
+// FR6.1: every course with its roll, using Course's operator<<, and now each
+// student's attendance percentage with the course average underneath
 void Administrator::generateEnrolmentReport() {
     UniversitySystem& sys = UniversitySystem::getInstance();
 
@@ -279,13 +344,10 @@ void Administrator::generateEnrolmentReport() {
         cout << "  Lecturer: " << c->getAssignedLectId()
              << " | Seats: " << enrolled.size() << "/" << c->getCapacity() << "\n";
 
-        if (enrolled.empty()) {
-            cout << "  (nobody enrolled)\n";
-            continue;
-        }
-        for (const string& id : enrolled) {
-            Person* p = sys.getUsers().findById(id);
-            cout << "  - " << id << (p ? " (" + p->getName() + ")" : "") << "\n";
+        double average = reportCourseAttendance(c);
+        if (!enrolled.empty()) {
+            cout << "  Course attendance average: "
+                 << fixed << setprecision(1) << average << "%\n";
         }
     }
     cout << "========================================================\n\n";

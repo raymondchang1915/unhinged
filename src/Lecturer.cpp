@@ -22,6 +22,31 @@ void Lecturer::showDashboard() {
     cout << "6. Logout\n";
 }
 
+// The lecturer's own view of the course list: the same walk over getCourses()
+// that the admin does, but filtered to the courses assigned to this lecturer,
+// which is the FR2.3 rule again.
+void Lecturer::listMyCourses() {
+    UniversitySystem& sys = UniversitySystem::getInstance();
+    vector<Course*> courses = sys.getCourses().all();
+
+    cout << "\n--- My Courses ---\n";
+
+    int shown = 0;
+    for (int i = 0; i < (int)courses.size(); i++) {
+        Course* c = courses[i];
+        if (c->getAssignedLectId() != getId()) {
+            continue;   // somebody else's course, skip it
+        }
+        shown++;
+        cout << "  " << shown << ". " << *c << "\n";
+        cout << "      Seats: " << c->getEnrolledIds().size() << "/" << c->getCapacity() << "\n";
+    }
+
+    if (shown == 0) {
+        cout << "  (no courses are assigned to you)\n";
+    }
+}
+
 // FR2.3: a lecturer may only touch courses assigned to them
 void Lecturer::openSession(string courseId, const TimeSlot& slot, int durationMin) {
     UniversitySystem& sys = UniversitySystem::getInstance();
