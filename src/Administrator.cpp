@@ -39,8 +39,9 @@ void Administrator::showDashboard() {
     cout << "Logged in as: " << getName() << " (" << getId() << ")\n";
     cout << "1. Manage users\n";
     cout << "2. Manage courses\n";
-    cout << "3. Enrolment report\n";
-    cout << "4. Logout\n";
+    cout << "3. List all courses\n";
+    cout << "4. Enrolment report\n";
+    cout << "5. Logout\n";
 }
 
 void Administrator::createUser() {

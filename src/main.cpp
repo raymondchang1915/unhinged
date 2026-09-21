@@ -181,11 +181,11 @@ public:
         while (true){
             if (!first) admin->showDashboard();
             first = false;
-            cout<<"Enter your choice (1-4): ";
+            cout<<"Enter your choice (1-5): ";
 
             int choice = 0;
             if (!readChoice(choice)) return;
-            if (choice == 4) return;
+            if (choice == 5) return;
 
             try {
                 string id, action;
@@ -220,9 +220,11 @@ public:
                         cout<<"Invalid choice. Please enter a, b, c or d.\n";
                     }
                 } else if (choice == 3){
+                    admin->listAllCourses();
+                } else if (choice == 4){
                     admin->generateEnrolmentReport();
                 } else if (choice != -1){
-                    cout<<"Invalid choice. Please enter 1 to 4.\n";
+                    cout<<"Invalid choice. Please enter 1 to 5.\n";
                 }
             } catch (const SystemException& e){
                 handleException(e);

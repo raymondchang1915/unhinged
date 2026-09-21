@@ -103,7 +103,8 @@ Log in: `1` → `A001` → `admin123`
 
 | Type | What appears |
 |---|---|
-| `3` | full enrolment report, every course with its roll |
+| `3` | every course in the system, with its lecturer and seats |
+| `4` | full enrolment report: each course, its roll, and each student's attendance % |
 | `1` `a` → `Student` `S004` `Sunil Fernando` `pass123` | `[Success] Created Student S004` |
 | `2` `a` → `LAB` `CS106` `Networks Lab` `2` `20` `L001` `6` `4` `600` `720` `Lab D` `CS101` | `[Success] Created course CS106` |
 | `2` `b` → `CS106` → `Advanced Networks Lab` `35` `L002` | `[Success] Updated course CS106` |
@@ -122,7 +123,7 @@ deletes the old one — and the prerequisite and time slot carry across."*
 Say: *"That last one was a bug our testing found. Typing letters used to leave `cin` in a
 fail state and save a course with empty fields."*
 
-| `4` then `2` | exits and saves |
+| `5` then `2` | exits and saves |
 
 ---
 
